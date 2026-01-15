@@ -6,9 +6,12 @@ use App\Models\Survey;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\Exportable;
 
 class SurveyResponsesExport implements FromCollection, WithHeadings, Responsable
 {
+    use Exportable;
+
     public string $fileName;
 
     protected Survey $survey;
