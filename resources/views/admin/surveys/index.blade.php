@@ -76,6 +76,11 @@
                                 @csrf
                                 <button class="btn btn-sm btn-success text-white">📄 Duplicate</button>
                             </form>
+                            <form action="{{ route('admin.surveys.destroy', $survey) }}" method="POST" onsubmit="return confirm('Hapus survey ini secara permanen? Data respons akan hilang.')" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-sm btn-danger text-white">🗑️ Hapus</button>
+                            </form>
                         </div>
                     </td>
                 </tr>
