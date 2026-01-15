@@ -117,6 +117,13 @@
                                                     {{ $item->is_read ? 'Tandai belum dibaca' : 'Tandai sudah dibaca' }}
                                                 </button>
                                             </form>
+                                            <form class="d-inline" action="{{ route('admin.pesan.destroy', $item) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesan ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Hapus pesan">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @empty
@@ -160,6 +167,13 @@
                                 <input type="hidden" name="is_read" value="{{ $selectedMessage->is_read ? 0 : 1 }}">
                                 <button type="submit" class="btn btn-sm btn-{{ $selectedMessage->is_read ? 'outline-warning' : 'outline-success' }}">
                                     {{ $selectedMessage->is_read ? 'Tandai belum dibaca' : 'Tandai sudah dibaca' }}
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.pesan.destroy', $selectedMessage) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesan ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    Hapus
                                 </button>
                             </form>
                             <a href="{{ route('admin.pesan.index', request()->except('focus')) }}" class="btn btn-sm btn-outline-secondary">Kembali ke daftar</a>

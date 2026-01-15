@@ -184,6 +184,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('struktur', OrgStructureController::class)->except(['show']);
     Route::get('pesan', [PesanController::class, 'index'])->name('pesan.index');
     Route::patch('pesan/{pesan}/status', [PesanController::class, 'updateStatus'])->name('pesan.status');
+    Route::delete('pesan/{pesan}', [PesanController::class, 'destroy'])->name('pesan.destroy');
     Route::resource('partner', PartnerController::class)->except(['show']);
     Route::resource('instructor', InstructorController::class)->except(['show']);
     Route::resource('benefit', BenefitController::class)->except(['show']);

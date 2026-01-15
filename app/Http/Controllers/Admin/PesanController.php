@@ -53,4 +53,10 @@ class PesanController extends Controller
 
         return redirect()->back()->with('status', $pesan->is_read ? 'Pesan ditandai sebagai sudah dibaca.' : 'Pesan ditandai belum dibaca.');
     }
+
+    public function destroy(Pesan $pesan)
+    {
+        $pesan->delete();
+        return redirect()->route('admin.pesan.index')->with('status', 'Pesan berhasil dihapus.');
+    }
 }
