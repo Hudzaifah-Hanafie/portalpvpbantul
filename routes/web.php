@@ -192,7 +192,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('alumni-tracer/dashboard', [AlumniTracerController::class, 'dashboard'])->name('alumni-tracer.dashboard')->middleware('permission:manage-users');
     Route::get('alumni-tracer/export', [AlumniTracerController::class, 'export'])->name('alumni-tracer.export')->middleware(['permission:manage-users']);
     Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy'])->middleware('permission:manage-users');
-    Route::resource('alumni', AlumniController::class)->except(['show']);
+    Route::resource('alumni', AlumniController::class)->except(['show'])->parameters(['alumni' => 'alumni']);
     Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify')->middleware('permission:manage-users');
     Route::resource('testimonial', TestimonialController::class)->except(['show']);
     Route::resource('training-service', TrainingServiceController::class)->except(['show']);
