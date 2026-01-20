@@ -5,7 +5,7 @@ namespace App\Mail;
 use App\Models\AlumniTracer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializersModels;
+use Illuminate\Queue\SerializesModels;
 
 class AlumniTracerVerified extends Mailable
 {
