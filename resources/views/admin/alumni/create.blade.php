@@ -47,7 +47,7 @@
                 <textarea name="notes" rows="4" class="form-control">{{ old('notes') }}</textarea>
             </div>
             <div class="form-check form-switch mt-3">
-                <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" checked>
                 <label class="form-check-label" for="isActive">Aktif</label>
             </div>
             <div class="text-end mt-4">

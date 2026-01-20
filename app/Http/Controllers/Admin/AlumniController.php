@@ -49,7 +49,7 @@ class AlumniController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['is_active'] = $request->boolean('is_active');
         Alumni::create($data);
 
         return redirect()->route('admin.alumni.index')->with('success', 'Data alumni berhasil disimpan.');
@@ -73,7 +73,7 @@ class AlumniController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['is_active'] = $request->boolean('is_active');
         $alumni->update($data);
 
         return redirect()->route('admin.alumni.index')->with('success', 'Data alumni berhasil diperbarui.');
