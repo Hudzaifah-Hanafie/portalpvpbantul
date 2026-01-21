@@ -105,25 +105,27 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            @php
-                                                $focusQuery = array_merge(request()->except(['focus', 'page']), ['focus' => $item->id]);
-                                            @endphp
-                                            <a href="{{ route('admin.pesan.index', $focusQuery) }}" class="btn btn-sm btn-outline-secondary me-2">Lihat detail</a>
-                                            <form class="d-inline" action="{{ route('admin.pesan.status', $item) }}" method="POST">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="is_read" value="{{ $item->is_read ? 0 : 1 }}">
-                                                <button type="submit" class="btn btn-sm btn-{{ $item->is_read ? 'outline-warning' : 'outline-success' }}">
-                                                    {{ $item->is_read ? 'Tandai belum dibaca' : 'Tandai sudah dibaca' }}
-                                                </button>
-                                            </form>
-                                            <form class="d-inline" action="{{ route('admin.pesan.destroy', $item) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesan ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Hapus pesan">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <div class="d-flex justify-content-end align-items-center gap-1">
+                                                @php
+                                                    $focusQuery = array_merge(request()->except(['focus', 'page']), ['focus' => $item->id]);
+                                                @endphp
+                                                <a href="{{ route('admin.pesan.index', $focusQuery) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Lihat detail</a>
+                                                <form class="d-inline" action="{{ route('admin.pesan.status', $item) }}" method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="is_read" value="{{ $item->is_read ? 0 : 1 }}">
+                                                    <button type="submit" class="btn btn-sm btn-{{ $item->is_read ? 'outline-warning' : 'outline-success' }} text-nowrap">
+                                                        {{ $item->is_read ? 'Tandai belum dibaca' : 'Tandai sudah dibaca' }}
+                                                    </button>
+                                                </form>
+                                                <form class="d-inline" action="{{ route('admin.pesan.destroy', $item) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesan ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus pesan">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
