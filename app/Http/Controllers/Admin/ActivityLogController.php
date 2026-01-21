@@ -55,9 +55,10 @@ class ActivityLogController extends Controller
         $this->authorize('deleteAny', ActivityLog::class);
 
         $request->validate([
-            'confirm' => 'required|in:CONFIRM',
+            'confirmation' => 'required|in:hapus data log',
         ], [
-            'confirm.in' => 'Ketik CONFIRM untuk membersihkan seluruh log.',
+            'confirmation.required' => 'Silakan ketik kalimat konfirmasi.',
+            'confirmation.in' => 'Kalimat konfirmasi salah. Ketik "hapus data log" (huruf kecil semua).',
         ]);
 
         ActivityLog::query()->delete();

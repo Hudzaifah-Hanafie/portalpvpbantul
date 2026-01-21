@@ -14,13 +14,17 @@
             <p class="text-muted mb-0">Audit trail untuk aktivitas pengguna (zona waktu {{ $timezone }}).</p>
         </div>
         @can('deleteAny', App\Models\ActivityLog::class)
-            <form action="{{ route('admin.activity-logs.clear') }}" method="POST" onsubmit="return confirm('Hapus seluruh log aktivitas? Tindakan ini tidak dapat dibatalkan.')">
-                @csrf
-                @method('DELETE')
-                <button class="btn btn-outline-danger btn-sm"><i class="fas fa-trash-alt me-2"></i>Bersihkan Log</button>
-            </form>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
+                <i class="fas fa-trash-alt me-2"></i>Bersihkan Log
+            </button>
         @endcan
     </div>
+
+    @if($errors->has('confirmation'))
+        <div class="alert alert-danger mb-4">
+            {{ $errors->first('confirmation') }}
+        </div>
+    @endif
 
     <div class="bg-white rounded shadow-sm p-3 mb-4">
         <form method="GET" class="row g-3 align-items-end">
@@ -117,4 +121,42 @@
     <div class="mt-3">
         {{ $logs->onEachSide(1)->links('vendor.pagination.bootstrap-5-sm') }}
     </div>
+
+    <!-- Modal Konfirmasi Hapus Log -->
+    <div class="modal fade" id="clearLogsModal" tabindex="-1" aria-labelledby="clearLogsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.activity-logs.clear') }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger" id="clearLogsModalLabel">Konfirmasi Penghapusan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Apakah Anda yakin ingin menghapus <strong>SELURUH</strong> riwayat log aktivitas? Tindakan ini tidak dapat dibatalkan.</p>
+                        <div class="mb-3">
+                            <label for="confirmation" class="form-label">Ketik <span class="badge bg-light text-danger border border-danger">hapus data log</span> untuk konfirmasi:</label>
+                            <input type="text" class="form-control" id="confirmation" name="confirmation" required autocomplete="off" placeholder="hapus data log">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Hapus Semua Log</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if($errors->has('confirmation'))
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var myModal = new bootstrap.Modal(document.getElementById('clearLogsModal'));
+                    myModal.show();
+                });
+            </script>
+        @endpush
+    @endif
 @endsection
