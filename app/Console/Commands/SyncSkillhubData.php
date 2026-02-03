@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\CourseClass;
 use App\Models\Instructor;
 use App\Models\Program;
+use App\Models\SiteSetting;
 use App\Models\TrainingSchedule;
 use App\Services\SiapKerjaService;
 use Carbon\Carbon;
@@ -26,9 +27,17 @@ class SyncSkillhubData extends Command
     {
         $this->info('Memulai sinkronisasi Skillhub...');
 
-        if (! config('services.siapkerja.admin_client_id') || ! config('services.siapkerja.admin_client_secret')) {
-            $this->error('Kredensial admin SIAP Kerja belum diatur. Setel SIAPKERJA_ADMIN_CLIENT_ID dan SIAPKERJA_ADMIN_CLIENT_SECRET.');
-            return self::FAILURE;
+        $serviceToken = SiteSetting::valueOf('siapkerja_service_token') ?: config('services.siapkerja.service_token');
+        $serviceToken = is_string($serviceToken) ? trim($serviceToken) : null;
+
+        $adminClientId = SiteSetting::valueOf('siapkerja_admin_client_id') ?: config('services.siapkerja.admin_client_id');
+        $adminClientSecret = SiteSetting::valueOf('siapkerja_admin_client_secret') ?: config('services.siapkerja.admin_client_secret');
+        $adminClientId = is_string($adminClientId) ? trim($adminClientId) : null;
+        $adminClientSecret = is_string($adminClientSecret) ? trim($adminClientSecret) : null;
+
+        if (! $serviceToken && (! $adminClientId || ! $adminClientSecret)) {
+            $this->warn('Token layanan SIAP Kerja belum diatur. Sinkronisasi Skillhub dilewati.');
+            return self::SUCCESS;
         }
 
         $programs = $this->pullPrograms();
@@ -174,6 +183,7 @@ class SyncSkillhubData extends Command
         );
 
         return [
+            'program_id' => $program->id,
             'external_id' => $externalId,
             'batch_id' => $batchId,
             'judul' => $this->resolveText($data, ['title', 'name', 'judul']) ?? $program->judul,

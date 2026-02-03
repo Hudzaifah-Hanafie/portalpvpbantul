@@ -45,6 +45,6 @@ class FaqSettingController extends Controller
 
         $setting->fill($data)->save();
 
-        return redirect()->route('admin.faq.settings')->with('success', 'Pengaturan FAQ diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan FAQ diperbarui.');
     }
 }

@@ -180,7 +180,16 @@
                     <p class="text-muted small text-center mb-0">Portal ini hanya menerima autentikasi melalui akun SIAP Kerja.</p>
                 </div>
                 @php
-                    $hasSso = config('services.siapkerja.client_id') && config('services.siapkerja.client_secret') && config('services.siapkerja.redirect');
+                    $ssoClientId = \App\Models\SiteSetting::valueOf('siapkerja_client_id');
+                    $ssoClientSecret = \App\Models\SiteSetting::valueOf('siapkerja_client_secret');
+                    $ssoRedirect = \App\Models\SiteSetting::valueOf('siapkerja_redirect');
+                    $hasSso = !empty($ssoClientId) && !empty($ssoClientSecret) && !empty($ssoRedirect);
+                    if (! $hasSso) {
+                        $ssoClientId = $ssoClientId ?: config('services.siapkerja.client_id');
+                        $ssoClientSecret = $ssoClientSecret ?: config('services.siapkerja.client_secret');
+                        $ssoRedirect = $ssoRedirect ?: config('services.siapkerja.redirect');
+                        $hasSso = !empty($ssoClientId) && !empty($ssoClientSecret) && !empty($ssoRedirect);
+                    }
                 @endphp
                 @if($hasSso)
                     <a href="{{ route('sso.siapkerja.redirect') }}" class="btn sso-btn w-100 py-3 fw-semibold">
@@ -188,7 +197,7 @@
                     </a>
                 @else
                     <div class="alert alert-warning text-center small">
-                        Konfigurasi SIAP Kerja belum diisi. Tambahkan kredensial pada .env untuk mengaktifkan SSO.
+                        Konfigurasi SIAP Kerja belum diisi. Lengkapi di Pengaturan Portal atau .env untuk mengaktifkan SSO.
                     </div>
                     <button type="button" class="btn sso-btn w-100 py-3" disabled title="Konfigurasi SIAPKerja belum diisi">
                         Masuk dengan Akun SIAP Kerja
@@ -196,6 +205,8 @@
                 @endif
                 
                 <div class="text-center mt-3 help-links">
+                    <a href="https://siapkerja.kemnaker.go.id" target="_blank" rel="noopener" class="text-decoration-none small d-block">Belum punya akun SIAP Kerja? Daftar di sini</a>
+                    <a href="{{ route('admin.login') }}" class="text-decoration-none small d-block">Login Admin Manual</a>
                     <a href="{{ route('home') }}" class="text-decoration-none small">Kembali ke Website Utama</a>
                 </div>
             </div>

@@ -8,6 +8,7 @@ use App\Models\CourseSession;
 use App\Models\CourseSubmission;
 use App\Models\CourseAttendance;
 use App\Models\CourseEnrollment;
+use App\Support\EnrollmentPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Storage;
@@ -18,21 +19,86 @@ class CourseParticipantController extends Controller
     public function assignments(Request $request)
     {
         $classId = $request->input('class_id');
-        $enrolledIds = $this->enrolledClassIds($request->user());
-        if ($classId && ! in_array($classId, $enrolledIds)) {
+        $approvedIds = $this->enrolledClassIds($request->user());
+        $pendingIds = CourseEnrollment::where('user_id', $request->user()->id)
+            ->where('status', 'pending')
+            ->pluck('course_class_id')
+            ->toArray();
+        $availableIds = array_values(array_unique(array_merge($approvedIds, $pendingIds)));
+
+        if ($classId && ! in_array($classId, $availableIds)) {
             abort(403, 'Anda tidak terdaftar pada kelas ini.');
         }
+
         $query = CourseAssignment::with('course')
             ->where('status', 'published')
             ->where('is_active', true)
             ->orderBy('due_at');
 
-        $query->whereIn('course_class_id', $classId ? [$classId] : $enrolledIds);
+        if ($classId) {
+            $query->where('course_class_id', $classId);
+            if (in_array($classId, $pendingIds, true)) {
+                $query->where('type', 'quiz');
+            }
+        } elseif (! $approvedIds && ! $pendingIds) {
+            $query->whereRaw('1 = 0');
+        } else {
+            $query->where(function ($builder) use ($approvedIds, $pendingIds) {
+                if ($approvedIds) {
+                    $builder->whereIn('course_class_id', $approvedIds);
+                }
+                if ($pendingIds) {
+                    $builder->orWhere(function ($subQuery) use ($pendingIds) {
+                        $subQuery->whereIn('course_class_id', $pendingIds)
+                            ->where('type', 'quiz');
+                    });
+                }
+            });
+        }
 
         $assignments = $query->paginate(15)->withQueryString();
-        $classes = CourseClass::whereIn('id', $enrolledIds)->orderBy('title')->pluck('title', 'id');
+        $classes = CourseClass::whereIn('id', $availableIds)->orderBy('title')->pluck('title', 'id');
 
         return view('participant.assignments.index', compact('assignments', 'classes', 'classId'));
+    }
+
+    public function myApplications(Request $request)
+    {
+        $user = $request->user();
+        $enrollments = CourseEnrollment::with([
+            'course',
+            'trainingSchedule',
+            'interviewAllocations.session',
+            'interviewAllocations.score',
+        ])
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $classIds = $enrollments->pluck('course_class_id')->filter()->unique()->values();
+        $quizAssignments = CourseAssignment::whereIn('course_class_id', $classIds)
+            ->where('type', 'quiz')
+            ->where('status', 'published')
+            ->where('is_active', true)
+            ->get();
+
+        $quizAssignmentsByClass = $quizAssignments->groupBy('course_class_id');
+        $cbtInfoByClass = [];
+        foreach ($classIds as $classId) {
+            $cbtInfoByClass[$classId] = $this->describeCbtWindow(
+                $quizAssignmentsByClass->get($classId, collect())
+            );
+        }
+
+        $statusOptions = CourseEnrollment::statuses();
+        $adminStatuses = CourseEnrollment::adminStatuses();
+
+        return view('participant.applications.index', compact(
+            'enrollments',
+            'cbtInfoByClass',
+            'statusOptions',
+            'adminStatuses'
+        ));
     }
 
     public function myClasses(Request $request)
@@ -72,8 +138,13 @@ class CourseParticipantController extends Controller
     public function showAssignment(CourseAssignment $assignment)
     {
         abort_unless($assignment->status === 'published' && $assignment->is_active, 404);
-        $enrolledIds = $this->enrolledClassIds(auth()->user());
-        abort_unless(in_array($assignment->course_class_id, $enrolledIds), 403);
+        $enrollment = CourseEnrollment::where('user_id', auth()->id())
+            ->where('course_class_id', $assignment->course_class_id)
+            ->first();
+        abort_unless($enrollment && in_array($enrollment->status, ['active', 'approved', 'completed', 'pending'], true), 403);
+        if ($enrollment->status === 'pending' && $assignment->type !== 'quiz') {
+            abort(403, 'Tugas ini hanya tersedia setelah Anda dinyatakan lolos seleksi.');
+        }
 
         $submission = CourseSubmission::where('course_assignment_id', $assignment->id)
             ->where('user_id', auth()->id())
@@ -104,8 +175,13 @@ class CourseParticipantController extends Controller
     public function submitAssignment(Request $request, CourseAssignment $assignment)
     {
         abort_unless($assignment->status === 'published' && $assignment->is_active, 404);
-        $enrolledIds = $this->enrolledClassIds($request->user());
-        abort_unless(in_array($assignment->course_class_id, $enrolledIds), 403);
+        $enrollment = CourseEnrollment::where('user_id', $request->user()->id)
+            ->where('course_class_id', $assignment->course_class_id)
+            ->first();
+        abort_unless($enrollment && in_array($enrollment->status, ['active', 'approved', 'completed', 'pending'], true), 403);
+        if ($enrollment->status === 'pending' && $assignment->type !== 'quiz') {
+            abort(403, 'Tugas ini hanya tersedia setelah Anda dinyatakan lolos seleksi.');
+        }
 
         if ($assignment->type === 'quiz') {
             return $this->submitQuiz($request, $assignment);
@@ -322,6 +398,19 @@ class CourseParticipantController extends Controller
             $enrollment->written_score = $percentScore;
             $enrollment->save();
             $enrollment->updateFinalScore();
+
+            if (EnrollmentPolicy::selectionMode() === EnrollmentPolicy::SELECTION_AUTO) {
+                $passScore = EnrollmentPolicy::cbtPassScore();
+                if ($percentScore < $passScore && $enrollment->status !== 'rejected' && $enrollment->status !== 'approved') {
+                    $enrollment->status = 'rejected';
+                    $enrollment->admin_status = 'rejected';
+                    $enrollment->admin_note = "Gugur otomatis: nilai CBT di bawah {$passScore}.";
+                    $enrollment->save();
+                } elseif ($percentScore >= $passScore && $enrollment->admin_status !== 'rejected') {
+                    $enrollment->admin_status = $enrollment->admin_status === 'verified' ? $enrollment->admin_status : 'verified';
+                    $enrollment->save();
+                }
+            }
         }
 
         return redirect()->route('participant.assignments.show', $assignment)->with('success', 'Quiz terkirim dan dinilai otomatis.');
@@ -370,6 +459,66 @@ class CourseParticipantController extends Controller
     private function quizSessionKey(string $assignmentId): string
     {
         return "quiz_attempt:{$assignmentId}:" . auth()->id();
+    }
+
+    private function describeCbtWindow($assignments): array
+    {
+        if ($assignments->isEmpty()) {
+            return [
+                'state' => 'none',
+                'label' => 'Belum dijadwalkan',
+                'next_start' => null,
+                'latest_end' => null,
+            ];
+        }
+
+        $now = now();
+        $open = $assignments->contains(function ($assignment) use ($now) {
+            $startsOk = ! $assignment->exam_start_at || $now->gte($assignment->exam_start_at);
+            $endsOk = ! $assignment->exam_end_at || $now->lte($assignment->exam_end_at);
+            return $startsOk && $endsOk;
+        });
+
+        $starts = $assignments->pluck('exam_start_at')->filter();
+        $ends = $assignments->pluck('exam_end_at')->filter();
+        $nextStart = $starts->filter(fn ($start) => $start->isFuture())
+            ->sortBy(fn ($date) => $date->timestamp)
+            ->first();
+        $latestEnd = $ends->sortByDesc(fn ($date) => $date->timestamp)->first();
+
+        if ($open) {
+            return [
+                'state' => 'open',
+                'label' => 'Sedang dibuka',
+                'next_start' => $nextStart,
+                'latest_end' => $latestEnd,
+            ];
+        }
+
+        if ($nextStart) {
+            return [
+                'state' => 'scheduled',
+                'label' => 'Dibuka ' . $nextStart->format('d M Y H:i'),
+                'next_start' => $nextStart,
+                'latest_end' => $latestEnd,
+            ];
+        }
+
+        if ($latestEnd) {
+            return [
+                'state' => 'closed',
+                'label' => 'Ditutup ' . $latestEnd->format('d M Y H:i'),
+                'next_start' => null,
+                'latest_end' => $latestEnd,
+            ];
+        }
+
+        return [
+            'state' => 'open',
+            'label' => 'Siap dikerjakan',
+            'next_start' => null,
+            'latest_end' => null,
+        ];
     }
 
     public function scanAttendance(Request $request, CourseSession $session)
@@ -422,14 +571,19 @@ class CourseParticipantController extends Controller
         return Storage::download($submission->file_url);
     }
 
-    private function enrolledClassIds($user): array
+    private function enrolledClassIds($user, bool $includePending = false): array
     {
         if (! $user) {
             return [];
         }
 
+        $statuses = ['active', 'approved', 'completed'];
+        if ($includePending) {
+            $statuses[] = 'pending';
+        }
+
         return CourseEnrollment::where('user_id', $user->id)
-            ->whereIn('status', ['active', 'approved', 'completed'])
+            ->whereIn('status', $statuses)
             ->pluck('course_class_id')
             ->toArray();
     }

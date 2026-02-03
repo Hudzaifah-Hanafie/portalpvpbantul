@@ -2,6 +2,7 @@
 
 @php
     $statusOptions = \App\Models\CourseEnrollment::statuses();
+    $adminStatuses = $adminStatuses ?? \App\Models\CourseEnrollment::adminStatuses();
 @endphp
 
 @section('content')
@@ -47,6 +48,26 @@
             @endforeach
         </select>
         @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Verifikasi Administrasi</label>
+        <div class="row g-2">
+            <div class="col-md-4">
+                <select name="admin_status" class="form-select @error('admin_status') is-invalid @enderror">
+                    @foreach($adminStatuses as $key => $label)
+                        <option value="{{ $key }}" @selected(old('admin_status', $enrollment->admin_status ?? 'pending') === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                <div class="form-text">Pilih VERIFIED untuk peserta yang lulus cek dokumen.</div>
+                @error('admin_status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-8">
+                <textarea name="admin_note" rows="2" class="form-control @error('admin_note') is-invalid @enderror" placeholder="Catatan verifikasi (opsional)">{{ old('admin_note', $enrollment->admin_note) }}</textarea>
+                <div class="form-text">Catatan akan tampil di dashboard admin sebagai alasan jika ditolak.</div>
+                @error('admin_note') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+        </div>
     </div>
 
     <div class="mb-3">

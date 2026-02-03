@@ -152,12 +152,21 @@
                     <p class="text-muted small mb-0">Pendaftaran manual dinonaktifkan. Gunakan akun SIAP Kerja untuk mengakses portal.</p>
                 </div>
                 @php
-                    $hasSso = config('services.siapkerja.client_id') && config('services.siapkerja.client_secret') && config('services.siapkerja.redirect');
+                    $ssoClientId = \App\Models\SiteSetting::valueOf('siapkerja_client_id');
+                    $ssoClientSecret = \App\Models\SiteSetting::valueOf('siapkerja_client_secret');
+                    $ssoRedirect = \App\Models\SiteSetting::valueOf('siapkerja_redirect');
+                    $hasSso = !empty($ssoClientId) && !empty($ssoClientSecret) && !empty($ssoRedirect);
+                    if (! $hasSso) {
+                        $ssoClientId = $ssoClientId ?: config('services.siapkerja.client_id');
+                        $ssoClientSecret = $ssoClientSecret ?: config('services.siapkerja.client_secret');
+                        $ssoRedirect = $ssoRedirect ?: config('services.siapkerja.redirect');
+                        $hasSso = !empty($ssoClientId) && !empty($ssoClientSecret) && !empty($ssoRedirect);
+                    }
                 @endphp
                 @if($hasSso)
                     <a href="{{ route('sso.siapkerja.redirect') }}" class="btn btn-primary w-100 py-3">Masuk dengan Akun SIAP Kerja</a>
                 @else
-                    <div class="alert alert-warning text-center small">Konfigurasi SIAP Kerja belum tersedia. Hubungi admin untuk mengisi kredensial.</div>
+                    <div class="alert alert-warning text-center small">Konfigurasi SIAP Kerja belum tersedia. Lengkapi di Pengaturan Portal atau hubungi admin.</div>
                 @endif
                 <div class="text-center mt-3 help-links">
                     <a href="{{ route('login') }}" class="text-decoration-none small">Kembali ke halaman login</a>

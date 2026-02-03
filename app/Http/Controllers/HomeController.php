@@ -17,6 +17,7 @@ use App\Models\Testimonial;
 use App\Models\SiteSetting;
 use App\Models\TrainingService;
 use App\Models\TrainingSchedule;
+use App\Models\CourseEnrollment;
 use App\Models\Empowerment;
 use App\Models\Productivity;
 use App\Models\JobVacancy;
@@ -39,6 +40,7 @@ use App\Models\User;
 use App\Http\Requests\AlumniTracerRequest;
 use App\Mail\AlumniTracerSubmission;
 use App\Mail\AlumniTracerVerified;
+use App\Support\EmailSettings;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
@@ -89,7 +91,11 @@ class HomeController extends Controller
                 WHEN bulan='Januari' THEN 1 WHEN bulan='Februari' THEN 2 WHEN bulan='Maret' THEN 3 WHEN bulan='April' THEN 4 WHEN bulan='Mei' THEN 5 WHEN bulan='Juni' THEN 6 WHEN bulan='Juli' THEN 7 WHEN bulan='Agustus' THEN 8 WHEN bulan='September' THEN 9 WHEN bulan='Oktober' THEN 10 WHEN bulan='November' THEN 11 WHEN bulan='Desember' THEN 12 ELSE 99 END")
             ->orderBy('mulai')
             ->get();
-        return view('pelatihan.jadwal', compact('schedules'));
+        $enrolledScheduleIds = auth()->check()
+            ? CourseEnrollment::where('user_id', auth()->id())->pluck('course_class_id')->toArray()
+            : [];
+
+        return view('pelatihan.jadwal', compact('schedules', 'enrolledScheduleIds'));
     }
 
     public function pemberdayaan()
@@ -286,7 +292,15 @@ class HomeController extends Controller
     public function showProgram($id)
     {
         $program = Program::findOrFail($id);
-        return view('detail_program', compact('program'));
+        $schedules = TrainingSchedule::where('program_id', $program->id)
+            ->where('is_active', true)
+            ->orderBy('mulai')
+            ->get();
+        $enrolledScheduleIds = auth()->check()
+            ? CourseEnrollment::where('user_id', auth()->id())->pluck('course_class_id')->toArray()
+            : [];
+
+        return view('detail_program', compact('program', 'schedules', 'enrolledScheduleIds'));
     }
 
     public function kontak()
@@ -556,7 +570,7 @@ class HomeController extends Controller
             ]
         ));
 
-        if ($alumniTracer->email) {
+        if ($alumniTracer->email && EmailSettings::confirmationsEnabled()) {
             Mail::to($alumniTracer->email)->send(new AlumniTracerSubmission($alumniTracer));
         }
 

@@ -11,6 +11,7 @@ class TrainingSchedule extends Model
     use HasUuid;
 
     protected $fillable = [
+        'program_id',
         'external_id',
         'batch_id',
         'judul',
@@ -31,4 +32,9 @@ class TrainingSchedule extends Model
         'selesai' => 'date',
         'is_active' => 'boolean',
     ];
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
 }

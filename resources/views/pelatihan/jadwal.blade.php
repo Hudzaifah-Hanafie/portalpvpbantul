@@ -67,7 +67,7 @@
 
 <section id="jadwal" class="py-5">
     <div class="container">
-        <div class="text-muted mb-4">Berikut jadwal pelatihan, lokasi, dan penyelenggara. Klik link pendaftaran jika tersedia.</div>
+    <div class="text-muted mb-4">Berikut jadwal pelatihan, lokasi, dan penyelenggara. Klik tombol daftar melalui portal Satpel.</div>
         @forelse($grouped as $bulan => $items)
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-teal text-white fw-bold" style="background:#0f7b7b;">
@@ -97,11 +97,21 @@
                                     <td>{{ $row->selesai ? $row->selesai->format('d M Y') : '-' }}</td>
                                     <td>{{ $row->kuota }}</td>
                                     <td>
-                                        @if($row->pendaftaran_link)
-                                            <a href="{{ $row->pendaftaran_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">Daftar</a>
+                                        @auth
+                                            @php
+                                                $isEnrolled = in_array($row->id, $enrolledScheduleIds ?? []);
+                                            @endphp
+                                            @if($isEnrolled)
+                                                <span class="badge bg-success">Terdaftar</span>
+                                            @else
+                                                <form action="{{ route('training.register', $row->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-outline-primary rounded-pill">Daftar di Portal</button>
+                                                </form>
+                                            @endif
                                         @else
-                                            <span class="text-muted small">-</span>
-                                        @endif
+                                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-pill">Login untuk daftar</a>
+                                        @endauth
                                     </td>
                                 </tr>
                                 @if($row->catatan)

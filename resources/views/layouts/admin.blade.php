@@ -219,6 +219,12 @@
                         <a href="{{ route('admin.program.index') }}" class="{{ request()->routeIs('admin.program.*') ? 'active' : '' }}">
                             <i class="fas fa-graduation-cap"></i> Program Pelatihan
                         </a>
+                        <a href="{{ route('admin.training-schedule.index') }}" class="{{ request()->routeIs('admin.training-schedule.*') ? 'active' : '' }}">
+                            <i class="fas fa-calendar-check"></i> Jadwal Pelatihan
+                        </a>
+                        <a href="{{ route('admin.instructor.index') }}" class="{{ request()->routeIs('admin.instructor.*') ? 'active' : '' }}">
+                            <i class="fas fa-chalkboard-teacher"></i> Instruktur
+                        </a>
                         <a href="{{ route('admin.training-service.index') }}" class="{{ request()->routeIs('admin.training-service.*') ? 'active' : '' }}">
                             <i class="fas fa-layer-group"></i> Layanan Pelatihan
                         </a>
@@ -418,8 +424,8 @@
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="submenu show" id="group-settings">
-                        <a href="{{ route('admin.settings.site') }}" class="{{ request()->routeIs('admin.settings.site*') ? 'active' : '' }}">
-                            <i class="fas fa-home"></i> Beranda & Umum
+                        <a href="{{ route('admin.settings.portal') }}" class="{{ request()->routeIs('admin.settings.portal*') || request()->routeIs('admin.settings.site*') ? 'active' : '' }}">
+                            <i class="fas fa-sliders-h"></i> Pengaturan Portal
                         </a>
                     </div>
                 </div>

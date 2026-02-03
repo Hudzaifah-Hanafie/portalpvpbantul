@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
 use App\Models\Role;
+use App\Support\EmailSettings;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -55,7 +56,9 @@ class InvitationController extends Controller
             'created_by_id' => $request->user()->id,
         ]);
 
-        Mail::to($invitation->email)->send(new InvitationMail($invitation, $token, $data['message'] ?? null));
+        if (EmailSettings::confirmationsEnabled()) {
+            Mail::to($invitation->email)->send(new InvitationMail($invitation, $token, $data['message'] ?? null));
+        }
 
         $this->logger->log(
             $request->user(),

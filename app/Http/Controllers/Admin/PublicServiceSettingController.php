@@ -116,6 +116,6 @@ class PublicServiceSettingController extends Controller
             $setting
         );
 
-        return redirect()->route('admin.public-service.settings')->with('success', 'Pengaturan pelayanan publik diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan pelayanan publik diperbarui.');
     }
 }

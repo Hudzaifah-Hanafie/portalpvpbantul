@@ -13,6 +13,7 @@ use App\Models\UserBadge;
 use App\Models\WeeklyChallenge;
 use App\Services\ActivityLogger;
 use App\Services\BadgeService;
+use App\Support\EmailSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -76,7 +77,7 @@ class AlumniForumModerationController extends Controller
 
         ForumEngagement::incrementField('topics_approved');
         $forumTopic->load('user');
-        if ($forumTopic->user && $forumTopic->user->email) {
+        if ($forumTopic->user && $forumTopic->user->email && EmailSettings::notificationsEnabled()) {
             Mail::to($forumTopic->user->email)->send(new ForumContentApproved(
                 'Topik',
                 $forumTopic->title,
@@ -120,7 +121,7 @@ class AlumniForumModerationController extends Controller
 
         ForumEngagement::incrementField('posts_approved');
         $forumPost->loadMissing('topic');
-        if ($forumPost->topic && $forumPost->user && $forumPost->user->email) {
+        if ($forumPost->topic && $forumPost->user && $forumPost->user->email && EmailSettings::notificationsEnabled()) {
             $topicUrl = route('alumni.forum.show', ['topic' => $forumPost->topic->slug]);
             Mail::to($forumPost->user->email)->send(new ForumContentApproved(
                 'Balasan',

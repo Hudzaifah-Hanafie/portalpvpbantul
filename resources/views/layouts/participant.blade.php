@@ -29,9 +29,11 @@
             </div>
             <div class="d-flex align-items-center gap-3">
                 <a href="{{ route('participant.classes') }}" class="fw-semibold {{ request()->routeIs('participant.classes') ? 'text-warning' : '' }}">Kelas Saya</a>
+                <a href="{{ route('participant.applications') }}" class="fw-semibold {{ request()->routeIs('participant.applications') ? 'text-warning' : '' }}">Pendaftaran</a>
                 <a href="{{ route('participant.assignments') }}" class="fw-semibold {{ request()->routeIs('participant.assignments*') ? 'text-warning' : '' }}">Tugas</a>
                 <a href="{{ route('participant.classes') }}#forum" class="fw-semibold {{ request()->routeIs('participant.class.forum.*') ? 'text-warning' : '' }}">Forum</a>
                 <a href="{{ route('participant.classes') }}#announcements" class="fw-semibold {{ request()->routeIs('participant.class.announcements*') ? 'text-warning' : '' }}">Pengumuman</a>
+                <a href="{{ route('profile.show') }}" class="fw-semibold {{ request()->routeIs('profile.show') ? 'text-warning' : '' }}">Profil Saya</a>
                 <form action="{{ route('logout') }}" method="POST" class="mb-0">
                     @csrf
                     <button class="btn btn-sm btn-outline-light">Logout</button>
@@ -69,6 +71,62 @@
                         <input type="hidden" name="class_id" value="{{ session('consent_class') }}">
                         <button class="btn btn-sm btn-primary">Saya Mengerti</button>
                     </form>
+                </div>
+            @endif
+            @php
+                $selectionAlerts = auth()->user()?->enrollments()
+                    ->with(['course', 'trainingSchedule'])
+                    ->whereIn('status', ['approved', 'rejected'])
+                    ->orderByDesc('updated_at')
+                    ->take(3)
+                    ->get();
+                $waitingAlerts = auth()->user()?->enrollments()
+                    ->with(['course', 'trainingSchedule'])
+                    ->where('status', 'pending')
+                    ->where('admin_status', 'verified')
+                    ->orderByDesc('updated_at')
+                    ->take(2)
+                    ->get();
+            @endphp
+            @if(($selectionAlerts && $selectionAlerts->isNotEmpty()) || ($waitingAlerts && $waitingAlerts->isNotEmpty()))
+                <div class="mb-3">
+                    @foreach($selectionAlerts ?? [] as $alert)
+                        @if($alert->status === 'approved')
+                            <div class="alert alert-success">
+                                <div class="fw-bold mb-1">SELAMAT! ANDA DITERIMA</div>
+                                <div class="small mb-1">Kelas: {{ $alert->course->title ?? '-' }}</div>
+                                <div class="small text-muted">Skor akhir: {{ $alert->final_score !== null ? number_format($alert->final_score, 2) : '-' }}</div>
+                                @php
+                                    $registrationUrl = $alert->trainingSchedule?->pendaftaran_link
+                                        ?? ($alert->trainingSchedule?->external_id ? "https://skillhub.kemnaker.go.id/pelatihan/{$alert->trainingSchedule->external_id}/daftar" : null)
+                                        ?? 'https://skillhub.kemnaker.go.id/app/pelatihan';
+                                @endphp
+                                <div class="mt-2">
+                                    @if($alert->coupon_code)
+                                        <div class="small mb-2">Kupon SIAP Kerja: <span class="fw-semibold">{{ $alert->coupon_code }}</span></div>
+                                        <a href="{{ $registrationUrl }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                                            Gunakan Kupon di SIAP Kerja
+                                        </a>
+                                    @else
+                                        <div class="small text-muted">Kupon akan diberikan setelah kelulusan diproses.</div>
+                                    @endif
+                                </div>
+                            </div>
+                        @elseif($alert->status === 'rejected')
+                            <div class="alert alert-danger">
+                                <div class="fw-bold mb-1">MOHON MAAF, ANDA BELUM BERHASIL</div>
+                                <div class="small mb-1">Kelas: {{ $alert->course->title ?? '-' }}</div>
+                                <div class="small mb-0 text-muted">Terima kasih sudah mendaftar. Anda bisa mencoba batch berikutnya.</div>
+                            </div>
+                        @endif
+                    @endforeach
+                    @foreach($waitingAlerts ?? [] as $alert)
+                        <div class="alert alert-warning">
+                            <div class="fw-bold mb-1">STATUS CADANGAN</div>
+                            <div class="small mb-1">Kelas: {{ $alert->course->title ?? '-' }}</div>
+                            <div class="small mb-0 text-muted">Anda berada di daftar cadangan menunggu ketersediaan kuota.</div>
+                        </div>
+                    @endforeach
                 </div>
             @endif
             @yield('content')

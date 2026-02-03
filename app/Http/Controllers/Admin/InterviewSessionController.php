@@ -9,6 +9,7 @@ use App\Models\InterviewScore;
 use App\Models\InterviewSession;
 use App\Models\TrainingSchedule;
 use App\Models\User;
+use App\Support\EnrollmentPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -143,6 +144,30 @@ class InterviewSessionController extends Controller
             $allocation->enrollment->interview_score = $final * 10; // skala 100
             $allocation->enrollment->save();
             $allocation->enrollment->updateFinalScore();
+
+            $enrollment = $allocation->enrollment;
+            if (EnrollmentPolicy::selectionMode() === EnrollmentPolicy::SELECTION_AUTO
+                && ! in_array($enrollment->status, ['approved', 'rejected'], true)) {
+                $cbtPass = EnrollmentPolicy::cbtPassScore();
+                $interviewPass = EnrollmentPolicy::interviewPassScore();
+                $cbtScore = $enrollment->written_score ?? 0;
+                $interviewScore = $enrollment->interview_score ?? 0;
+
+                if ($cbtScore < $cbtPass || $interviewScore < $interviewPass) {
+                    $enrollment->status = 'rejected';
+                    $enrollment->admin_status = 'rejected';
+                    $enrollment->admin_note = "Gugur otomatis: nilai CBT < {$cbtPass} atau wawancara < {$interviewPass}.";
+                    $enrollment->save();
+                } else {
+                    $enrollment->status = 'approved';
+                    $enrollment->admin_status = 'verified';
+                    $enrollment->save();
+
+                    if (EnrollmentPolicy::couponIssueMode() === EnrollmentPolicy::COUPON_APPROVED) {
+                        $enrollment->issueCoupon('approved', $request->user()->id);
+                    }
+                }
+            }
         }
 
         return back()->with('success', 'Nilai wawancara disimpan.');

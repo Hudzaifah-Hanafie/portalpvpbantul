@@ -59,8 +59,8 @@
 
                 <div class="feature-card p-3">
                     <h5 class="fw-bold">Pendaftaran Pelatihan</h5>
-                    <p class="text-muted small">Ingin mengikuti pelatihan di Satpel PVP Bantul? Cek jadwal dan daftarkan diri Anda segera melalui akun SIAPkerja.</p>
-                    <a href="https://siapkerja.kemnaker.go.id" target="_blank" class="btn btn-primary w-100 pill-btn">Daftar Sekarang</a>
+                    <p class="text-muted small">Ingin mengikuti pelatihan di Satpel PVP Bantul? Cek jadwal batch dan daftar melalui portal Satpel (login dengan akun SIAP Kerja).</p>
+                    <a href="{{ route('pelatihan.jadwal') }}" class="btn btn-primary w-100 pill-btn">Lihat Jadwal Pelatihan</a>
                 </div>
             </div>
         </div>

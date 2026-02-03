@@ -44,6 +44,6 @@ class ContactSettingController extends Controller
 
         $setting->fill($data)->save();
 
-        return redirect()->route('admin.contact.settings')->with('success', 'Pengaturan hubungi kami diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan hubungi kami diperbarui.');
     }
 }

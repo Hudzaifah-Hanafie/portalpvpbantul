@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasUuid;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Program extends Model
 {
@@ -40,5 +41,10 @@ class Program extends Model
             'pending' => 'Menunggu Review',
             'published' => 'Terpublikasi',
         ];
+    }
+
+    public function trainingSchedules(): HasMany
+    {
+        return $this->hasMany(TrainingSchedule::class);
     }
 }

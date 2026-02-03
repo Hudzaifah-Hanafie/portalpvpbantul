@@ -74,6 +74,7 @@ use App\Http\Controllers\Admin\SchedulePreviewController;
 use App\Http\Controllers\Admin\InterviewSessionController;
 use App\Http\Controllers\Admin\SkillhubSyncController;
 use App\Http\Controllers\Instructor\InstructorScheduleController;
+use App\Http\Controllers\UserProfileController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -105,6 +106,13 @@ Route::middleware(['auth', 'permission:access-alumni-forum'])->group(function ()
 
 // Area peserta (tugas & presensi)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/my/profile', [UserProfileController::class, 'show'])->name('profile.show');
+    Route::match(['get', 'post'], '/my/profile/sync', [\App\Http\Controllers\SiapKerjaSsoController::class, 'sync'])
+        ->name('profile.sync');
+    Route::post('/my/profile/phone', [UserProfileController::class, 'updatePhone'])->name('profile.phone.update');
+    Route::post('/pelatihan/jadwal/{schedule}/daftar', [\App\Http\Controllers\TrainingRegistrationController::class, 'register'])
+        ->name('training.register');
+    Route::get('/my/applications', [\App\Http\Controllers\CourseParticipantController::class, 'myApplications'])->name('participant.applications');
     Route::get('/my/assignments', [\App\Http\Controllers\CourseParticipantController::class, 'assignments'])->name('participant.assignments');
     Route::get('/my/assignments/{assignment}', [\App\Http\Controllers\CourseParticipantController::class, 'showAssignment'])->name('participant.assignments.show');
     Route::post('/my/assignments/{assignment}/submit', [\App\Http\Controllers\CourseParticipantController::class, 'submitAssignment'])->name('participant.assignments.submit');
@@ -151,8 +159,10 @@ Route::get('/profil/instruktur', [HomeController::class, 'profilInstruktur'])->n
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/sso/siapkerja', [\App\Http\Controllers\SiapKerjaSsoController::class, 'redirect'])->name('sso.siapkerja.redirect')->middleware('guest');
-Route::get('/sso/siapkerja/callback', [\App\Http\Controllers\SiapKerjaSsoController::class, 'callback'])->name('sso.siapkerja.callback')->middleware('guest');
+Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login')->middleware('guest');
+Route::post('/admin/login', [AuthController::class, 'loginAdmin'])->name('admin.login.post')->middleware('guest');
+Route::get('/sso/siapkerja', [\App\Http\Controllers\SiapKerjaSsoController::class, 'redirect'])->name('sso.siapkerja.redirect');
+Route::get('/sso/siapkerja/callback', [\App\Http\Controllers\SiapKerjaSsoController::class, 'callback'])->name('sso.siapkerja.callback');
 Route::get('/register', [RegistrationController::class, 'show'])->name('register')->middleware('guest');
 Route::post('/register', [RegistrationController::class, 'register'])->name('register.post')->middleware('guest');
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request')->middleware('guest');
@@ -256,7 +266,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('ops-dashboard', \App\Http\Controllers\Admin\OpsDashboardController::class)->name('ops-dashboard');
     Route::resource('course-submission', CourseSubmissionController::class)->only(['index', 'edit', 'update', 'destroy']);
     Route::get('course-submission/export/csv', [CourseSubmissionController::class, 'exportCsv'])->name('course-submission.export.csv');
+    Route::get('course-enrollment/ranking', [CourseEnrollmentController::class, 'ranking'])->name('course-enrollment.ranking')->middleware('permission:manage-enrollment');
+    Route::post('course-enrollment/ranking', [CourseEnrollmentController::class, 'applyRanking'])->name('course-enrollment.ranking.apply')->middleware('permission:manage-enrollment');
     Route::resource('course-enrollment', CourseEnrollmentController::class)->except(['show'])->middleware('permission:manage-enrollment');
+    Route::patch('course-enrollment/{course_enrollment}/verify', [CourseEnrollmentController::class, 'verify'])->name('course-enrollment.verify')->middleware('permission:manage-enrollment');
     Route::get('course-enrollment-import', [CourseEnrollmentImportController::class, 'create'])->name('course-enrollment.import')->middleware('permission:manage-enrollment');
     Route::post('course-enrollment-import', [CourseEnrollmentImportController::class, 'store'])->name('course-enrollment.import.store')->middleware('permission:manage-enrollment');
     Route::resource('course-announcement', CourseAnnouncementController::class)->except(['show']);
@@ -266,6 +279,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::post('course-forum-reports/{course_forum_report}/mute', [CourseForumReportController::class, 'mute'])->name('course-forum-reports.mute')->middleware('permission:moderate-class-forum');
     Route::get('course-progress', [CourseProgressController::class, 'index'])->name('course-progress.index');
     Route::resource('profile', ProfileController::class)->only(['index', 'edit', 'update']);
+    Route::get('settings/portal', [SiteSettingController::class, 'portal'])->name('settings.portal');
     Route::get('settings/site', [SiteSettingController::class, 'edit'])->name('settings.site');
     Route::put('settings/site', [SiteSettingController::class, 'update'])->name('settings.site.update');
     Route::post('impersonate/{user}', [ImpersonationController::class, 'start'])

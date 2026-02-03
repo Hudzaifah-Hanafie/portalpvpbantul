@@ -59,7 +59,7 @@ class PublicationSettingController extends Controller
             $setting
         );
 
-        return redirect()->route('admin.publication.settings')->with('success', 'Pengaturan publikasi disimpan.');
+        return redirect()->back()->with('success', 'Pengaturan publikasi disimpan.');
     }
 
     private function normalizeYoutubeUrl(string $url): string

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\CourseEnrollment;
+use App\Support\EmailSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,7 +19,7 @@ class EnrollmentCreated extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return EmailSettings::notificationsEnabled() ? ['mail', 'database'] : ['database'];
     }
 
     public function toMail($notifiable): MailMessage

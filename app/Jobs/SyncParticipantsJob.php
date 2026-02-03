@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\CourseClass;
 use App\Models\CourseEnrollment;
+use App\Models\SiteSetting;
 use App\Models\TrainingSchedule;
 use App\Models\User;
 use App\Services\SiapKerjaService;
@@ -29,6 +30,19 @@ class SyncParticipantsJob implements ShouldQueue
 
     public function handle(SiapKerjaService $siapKerja): void
     {
+        $serviceToken = SiteSetting::valueOf('siapkerja_service_token') ?: config('services.siapkerja.service_token');
+        $serviceToken = is_string($serviceToken) ? trim($serviceToken) : null;
+
+        $adminClientId = SiteSetting::valueOf('siapkerja_admin_client_id') ?: config('services.siapkerja.admin_client_id');
+        $adminClientSecret = SiteSetting::valueOf('siapkerja_admin_client_secret') ?: config('services.siapkerja.admin_client_secret');
+        $adminClientId = is_string($adminClientId) ? trim($adminClientId) : null;
+        $adminClientSecret = is_string($adminClientSecret) ? trim($adminClientSecret) : null;
+
+        if (! $serviceToken && (! $adminClientId || ! $adminClientSecret)) {
+            Log::warning('Sinkronisasi peserta Skillhub dilewati karena token layanan SIAP Kerja belum diatur.');
+            return;
+        }
+
         $schedules = TrainingSchedule::whereNotNull('batch_id')
             ->when($this->batchIds, fn ($query) => $query->whereIn('batch_id', $this->batchIds))
             ->get();
@@ -53,21 +67,26 @@ class SyncParticipantsJob implements ShouldQueue
                 }
 
                 $status = $this->mapStatus(Arr::get($participant, 'status'));
-                $payload = [
-                    'status' => $status,
-                ];
+                $enrollment = CourseEnrollment::firstOrNew([
+                    'course_class_id' => $schedule->id,
+                    'user_id' => $user->id,
+                ]);
 
-                if ($status === 'completed') {
-                    $payload['completed_at'] = now();
+                if (! $enrollment->exists) {
+                    $enrollment->status = $status;
+                } else {
+                    if ($status === 'completed') {
+                        $enrollment->status = 'completed';
+                    } elseif (in_array($enrollment->status, ['pending', 'active'], true)) {
+                        $enrollment->status = $status;
+                    }
                 }
 
-                CourseEnrollment::updateOrCreate(
-                    [
-                        'course_class_id' => $schedule->id,
-                        'user_id' => $user->id,
-                    ],
-                    $payload
-                );
+                if ($status === 'completed' && ! $enrollment->completed_at) {
+                    $enrollment->completed_at = now();
+                }
+
+                $enrollment->save();
             }
         }
     }

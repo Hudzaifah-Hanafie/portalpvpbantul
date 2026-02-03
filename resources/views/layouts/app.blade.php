@@ -106,7 +106,7 @@
                     </form>
                     @auth
                         <div class="dropdown ms-2">
-                            <button class="btn btn-outline-secondary btn-sm rounded-circle p-2" type="button" id="alumniActions" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-placement="bottom" title="Menu alumni" data-bs-toggle="tooltip">
+                            <button class="btn btn-outline-secondary btn-sm rounded-circle p-2" type="button" id="alumniActions" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-placement="bottom" title="Menu akun" data-bs-toggle="tooltip">
                                 <i class="fas fa-user-circle fa-lg"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="alumniActions">
@@ -117,8 +117,10 @@
                                     </li>
                                     <li><hr class="my-1"></li>
                                 @endif
-                                <li><a class="dropdown-item" href="{{ route('alumni.profile.complete') }}">Lengkapi Profil Alumni</a></li>
-                                <li><a class="dropdown-item" href="{{ route('alumni.tracer') }}">Tracer Study</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.show') }}">Profil Saya</a></li>
+                                @if($currentUser?->hasRole('alumni'))
+                                    <li><a class="dropdown-item" href="{{ route('alumni.tracer') }}">Tracer Study</a></li>
+                                @endif
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST" class="m-0">
                                         @csrf

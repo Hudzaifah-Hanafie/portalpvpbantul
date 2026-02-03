@@ -50,6 +50,6 @@ class PpidSettingController extends Controller
             $setting
         );
 
-        return redirect()->route('admin.ppid.settings')->with('success', 'Pengaturan PPID diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan PPID diperbarui.');
     }
 }

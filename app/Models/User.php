@@ -12,6 +12,7 @@ use App\Models\ForumPost;
 use App\Models\ForumTopic;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -139,5 +140,40 @@ class User extends Authenticatable
     public function enrollments(): HasMany
     {
         return $this->hasMany(CourseEnrollment::class);
+    }
+
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    public function educations(): HasMany
+    {
+        return $this->hasMany(UserEducation::class);
+    }
+
+    public function experiences(): HasMany
+    {
+        return $this->hasMany(UserExperience::class);
+    }
+
+    public function certifications(): HasMany
+    {
+        return $this->hasMany(UserCertification::class);
+    }
+
+    public function trainings(): HasMany
+    {
+        return $this->hasMany(UserTraining::class);
+    }
+
+    public function skills(): HasMany
+    {
+        return $this->hasMany(UserSkill::class);
+    }
+
+    public function languages(): HasMany
+    {
+        return $this->hasMany(UserLanguage::class);
     }
 }

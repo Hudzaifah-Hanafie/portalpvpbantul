@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Support\EmailSettings;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
@@ -21,7 +22,7 @@ class ForumUserMuted extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return EmailSettings::notificationsEnabled() ? ['mail', 'database'] : ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage

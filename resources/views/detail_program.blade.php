@@ -2,11 +2,10 @@
 
 @section('content')
 @php
-    $skillhubRegistration = $program->external_id ? "https://skillhub.kemnaker.go.id/pelatihan/{$program->external_id}/daftar" : null;
-    $registrationUrl = $skillhubRegistration ?: ($program->pendaftaran_link ?: 'https://skillhub.kemnaker.go.id/app/pelatihan');
     $biayaLabel = $program->biaya_label ?: 'Gratis';
     $sertifikatLabel = $program->sertifikat_label ?: 'Sertifikat Mengikuti Pelatihan';
     $bahasaLabel = $program->bahasa_label ?: 'Bahasa Indonesia';
+    $scheduleCount = isset($schedules) ? $schedules->count() : 0;
 @endphp
 <section class="section-shell" style="background: linear-gradient(120deg, #f5f9ff 0%, #eef5fb 50%, #f3f9fc 100%);">
     <div class="container">
@@ -37,9 +36,82 @@
                         <div class="d-flex align-items-center text-muted mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ $sertifikatLabel }}</div>
                         <div class="d-flex align-items-center text-muted"><i class="fas fa-language text-success me-2"></i> {{ $bahasaLabel }}</div>
                     </div>
-                    <a href="{{ $registrationUrl }}" target="_blank" rel="noopener" class="btn btn-primary w-100 pill-btn">Daftar Pelatihan Sekarang</a>
+                    @auth
+                        <a href="#jadwal" class="btn btn-primary w-100 pill-btn">Daftar di Portal Satpel</a>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-primary w-100 pill-btn">Login untuk Daftar</a>
+                    @endauth
+                    <p class="text-muted small mt-2 mb-0">Pendaftaran dilakukan di portal Satpel sesuai jadwal batch. Peserta lulus akan menerima kupon untuk mendaftar program di SIAP Kerja.</p>
+                    <div class="small text-muted mt-2">Jadwal tersedia: {{ $scheduleCount }} batch.</div>
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<section id="jadwal" class="section-shell">
+    <div class="container">
+        <div class="feature-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h4 class="fw-bold mb-1">Jadwal & Pendaftaran</h4>
+                    <p class="text-muted mb-0">Pilih jadwal batch yang sesuai, lalu daftar melalui portal Satpel.</p>
+                </div>
+                @auth
+                    <a href="{{ route('participant.applications') }}" class="btn btn-outline-primary btn-sm pill-btn">Lihat Status Pendaftaran</a>
+                @endauth
+            </div>
+            @if(isset($schedules) && $schedules->isNotEmpty())
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Batch</th>
+                                <th>Mulai</th>
+                                <th>Selesai</th>
+                                <th>Lokasi</th>
+                                <th>Kuota</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($schedules as $schedule)
+                                @php
+                                    $isEnrolled = in_array($schedule->id, $enrolledScheduleIds ?? []);
+                                @endphp
+                                <tr>
+                                    <td class="fw-semibold">{{ $schedule->judul }}</td>
+                                    <td>{{ $schedule->mulai ? $schedule->mulai->format('d M Y') : '-' }}</td>
+                                    <td>{{ $schedule->selesai ? $schedule->selesai->format('d M Y') : '-' }}</td>
+                                    <td>{{ $schedule->lokasi ?? '-' }}</td>
+                                    <td>{{ $schedule->kuota ?? '-' }}</td>
+                                    <td>
+                                        @auth
+                                            @if($isEnrolled)
+                                                <span class="badge bg-success">Terdaftar</span>
+                                            @else
+                                                <form action="{{ route('training.register', $schedule->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-primary rounded-pill">Daftar</button>
+                                                </form>
+                                            @endif
+                                        @else
+                                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary rounded-pill">Login untuk daftar</a>
+                                        @endauth
+                                    </td>
+                                </tr>
+                                @if($schedule->catatan)
+                                    <tr>
+                                        <td colspan="6" class="text-muted small ps-4">{{ $schedule->catatan }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="alert alert-info mb-0">Belum ada jadwal batch untuk program ini.</div>
+            @endif
         </div>
     </div>
 </section>

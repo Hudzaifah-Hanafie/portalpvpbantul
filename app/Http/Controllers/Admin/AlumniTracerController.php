@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\AlumniTracerVerified;
 use App\Models\AlumniTracer;
+use App\Support\EmailSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -134,7 +135,7 @@ class AlumniTracerController extends Controller
             'verified_at' => Carbon::now(),
         ]);
 
-        if ($alumni_tracer->email) {
+        if ($alumni_tracer->email && EmailSettings::notificationsEnabled()) {
             Mail::to($alumni_tracer->email)->send(new AlumniTracerVerified($alumni_tracer));
         }
 

@@ -5,8 +5,8 @@
     $heroTitle = $settings['home_hero_title'] ?? 'Tingkatkan Potensi Dirimu, Siap Sukses Bersama PVP Bantul';
     $heroSubtitle = $settings['home_hero_subtitle'] ?? 'Program pelatihan vokasi dan pemberdayaan yang selangkah lebih maju, dipandu instruktur bersertifikat dan mitra industri.';
     $heroImage = $settings['home_hero_image'] ?? 'https://placehold.co/620x420?text=Hero+Image';
-    $heroCta1Text = $settings['home_hero_cta_primary_text'] ?? 'Daftar Pelatihan';
-    $heroCta1Link = $settings['home_hero_cta_primary_link'] ?? 'https://siapkerja.kemnaker.go.id/app/pelatihan';
+    $heroCta1Text = $settings['home_hero_cta_primary_text'] ?? 'Daftar di Portal';
+    $heroCta1Link = $settings['home_hero_cta_primary_link'] ?? route('pelatihan.katalog');
     $heroCta2Text = $settings['home_hero_cta_secondary_text'] ?? 'Baca Selengkapnya';
     $heroCta2Link = $settings['home_hero_cta_secondary_link'] ?? route('program');
     $heroBg = $settings['home_hero_bg'] ?? $heroImage;
@@ -435,7 +435,7 @@
         <h3 class="fw-bold mb-2 text-white">{{ $settings['cta_title'] ?? 'Tunggu Apalagi? Yuk Langsung Daftar Kelasnya' }}</h3>
         <p class="mb-4 text-white">{{ $settings['cta_subtitle'] ?? 'Ikuti program pelatihan terbaik untuk meningkatkan kompetensi dan siap kerja.' }}</p>
         <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <a href="{{ $settings['cta_button_1_link'] ?? 'https://siapkerja.kemnaker.go.id/app/pelatihan' }}" class="btn btn-cta">{{ $settings['cta_button_1_text'] ?? 'Daftar Pelatihan' }}</a>
+            <a href="{{ $settings['cta_button_1_link'] ?? route('pelatihan.katalog') }}" class="btn btn-cta">{{ $settings['cta_button_1_text'] ?? 'Daftar di Portal' }}</a>
             <a href="{{ $settings['cta_button_2_link'] ?? route('kontak') }}" class="btn btn-cta-ghost">{{ $settings['cta_button_2_text'] ?? 'Hubungi Kami' }}</a>
         </div>
     </div>
