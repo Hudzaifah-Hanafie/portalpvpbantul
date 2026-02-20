@@ -10,6 +10,7 @@
             $isMainProfile = $profile->key === 'profil_instansi';
             $isDenahProfile = $profile->key === 'profil_denah';
             $isVisiMisiProfile = $profile->key === 'visi_misi';
+            
             $visiDecoded = ['visi' => '', 'misi' => ''];
             if ($isVisiMisiProfile) {
                 $decoded = json_decode($profile->konten ?? '', true);
@@ -18,6 +19,17 @@
                     $visiDecoded['misi'] = $decoded['misi'] ?? '';
                 } else {
                     $visiDecoded['visi'] = $profile->konten ?? '';
+                }
+            }
+
+            $denahDecoded = ['map' => '', 'subjudul' => ''];
+            if ($isDenahProfile) {
+                $decoded = json_decode($profile->konten ?? '', true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $denahDecoded['map'] = $decoded['map'] ?? '';
+                    $denahDecoded['subjudul'] = $decoded['subjudul'] ?? '';
+                } else {
+                    $denahDecoded['map'] = $profile->konten ?? '';
                 }
             }
         @endphp
@@ -70,19 +82,28 @@
                     <small class="text-muted">Anda dapat menuliskan poin per paragraf atau menggunakan elemen &lt;ul&gt;.&lt;li&gt;.</small>
                     @error('misi_text') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
+            @elseif($isDenahProfile)
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Subjudul / Deskripsi Denah</label>
+                    <textarea name="subjudul" rows="3" class="form-control @error('subjudul') is-invalid @enderror" placeholder="Tulis deskripsi singkat lokasi di sini...">{{ old('subjudul', $denahDecoded['subjudul']) }}</textarea>
+                    <small class="text-muted">Tampil tepat di bawah judul denah lokasi pada halaman instansi.</small>
+                    @error('subjudul') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Embed Map (Iframe/URL)</label>
+                    <textarea name="konten" rows="6" class="form-control @error('konten') is-invalid @enderror" placeholder="Tempelkan kode <iframe> atau URL Embed Google Maps di sini...">{{ old('konten', $denahDecoded['map']) }}</textarea>
+                    <div class="alert alert-info py-2 px-3 mt-2 small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Tips:</strong> Gunakan kode <code>&lt;iframe src="..."&gt;&lt;/iframe&gt;</code> yang didapat dari menu <em>"Bagikan > Sematkan peta"</em> di Google Maps.
+                        <br>URL pendek (seperti <code>https://maps.app.goo.gl/...</code>) tidak didukung untuk iframe.
+                    </div>
+                    @error('konten') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                </div>
             @else
                 <div class="mb-3">
-                    <label class="form-label fw-bold">
-                        {{ $isDenahProfile ? 'Embed Map (Google Maps/OpenStreetMap)' : 'Isi Konten' }}
-                    </label>
-                    <textarea name="konten" rows="{{ $isDenahProfile ? 6 : 15 }}" class="form-control @error('konten') is-invalid @enderror" placeholder="{{ $isDenahProfile ? 'Tempelkan kode iframe atau tautan share dari Google Maps/OpenStreetMap...' : 'Tulis isi halaman di sini...' }}">{{ old('konten', $profile->konten) }}</textarea>
-                    <small class="text-muted">
-                        @if($isDenahProfile)
-                            Salin URL berbagi (https://maps.google.com/... atau https://www.openstreetmap.org/...) atau kode &lt;iframe&gt; untuk ditampilkan sebagai peta interaktif.
-                        @else
-                            Anda bisa menggunakan tag HTML sederhana seperti &lt;p&gt;, &lt;b&gt;, &lt;ul&gt;.
-                        @endif
-                    </small>
+                    <label class="form-label fw-bold">Isi Konten</label>
+                    <textarea name="konten" rows="15" class="form-control @error('konten') is-invalid @enderror" placeholder="Tulis isi halaman di sini...">{{ old('konten', $profile->konten) }}</textarea>
+                    <small class="text-muted">Anda bisa menggunakan tag HTML sederhana seperti &lt;p&gt;, &lt;b&gt;, &lt;ul&gt;.</small>
                     @error('konten') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
             @endif

@@ -209,16 +209,28 @@
 </section>
 
 @if($denah)
+@php
+    $denahData = ['map' => '', 'subjudul' => 'Temukan lokasi workshop, asrama, area publik, dan fasilitas pendukung lainnya melalui denah terbaru kami.'];
+    if ($denah?->konten) {
+        $decodedDenah = json_decode($denah->konten, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedDenah)) {
+            $denahData['map'] = $decodedDenah['map'] ?? '';
+            $denahData['subjudul'] = $decodedDenah['subjudul'] ?? $denahData['subjudul'];
+        } else {
+            $denahData['map'] = $denah->konten;
+        }
+    }
+@endphp
 <section class="py-5 bg-white">
     <div class="container">
         <div class="row g-4 align-items-center">
             <div class="col-lg-5">
-                <h3 class="fw-bold mb-3">Denah Lokasi Satpel PVP Bantul</h3>
-                <p class="text-muted">Temukan lokasi workshop, asrama, area publik, dan fasilitas pendukung lainnya melalui denah terbaru kami.</p>
+                <h3 class="fw-bold mb-3">{{ $denah->judul ?? 'Denah Lokasi Satpel PVP Bantul' }}</h3>
+                <p class="text-muted">{{ $denahData['subjudul'] }}</p>
             </div>
             <div class="col-lg-7">
                 @php
-                    $denahEmbed = trim($denah->konten ?? '');
+                    $denahEmbed = trim($denahData['map'] ?? '');
                 @endphp
                 @if($denahEmbed)
                     <div class="map-embed">
