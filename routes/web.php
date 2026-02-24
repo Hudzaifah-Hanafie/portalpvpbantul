@@ -74,23 +74,6 @@ use App\Http\Controllers\Admin\SchedulePreviewController;
 use App\Http\Controllers\Admin\InterviewSessionController;
 use App\Http\Controllers\Admin\SkillhubSyncController;
 use App\Http\Controllers\Instructor\InstructorScheduleController;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-
-Route::get('/force-login', function () {
-    // 1. Ambil data user pertama dari database
-    $user = User::first(); 
-
-    if (!$user) {
-        return "Gagal bypass: Tidak ada user di database. Silakan jalankan php artisan db:seed atau buat user manual.";
-    }
-
-    // 2. Paksa login sebagai user tersebut
-    Auth::login($user);
-
-    // 3. Arahkan ke halaman dashboard (cek di routes kamu, biasanya /admin atau /dashboard)
-    return redirect('/admin'); 
-});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
