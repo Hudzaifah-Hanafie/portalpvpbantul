@@ -43,6 +43,7 @@ class TrainingServiceController extends Controller
             $path = $request->file('gambar')->store('training_services', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
+        $data['is_active'] = $request->boolean('is_active');
         $this->applyWorkflow($request, $data);
         TrainingService::create($data);
         return redirect()->route('admin.training-service.index')->with('success', 'Layanan pelatihan ditambahkan.');
@@ -67,6 +68,7 @@ class TrainingServiceController extends Controller
             $path = $request->file('gambar')->store('training_services', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
+        $data['is_active'] = $request->boolean('is_active');
         $this->applyWorkflow($request, $data, $training_service);
         $training_service->update($data);
         return redirect()->route('admin.training-service.index')->with('success', 'Layanan pelatihan diperbarui.');
@@ -84,13 +86,19 @@ class TrainingServiceController extends Controller
     private function validateData(Request $request): array
     {
         return $request->validate([
-            'judul' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
-            'fasilitas' => 'nullable|string',
-            'urutan' => 'nullable|integer',
+            'judul' => 'required|string|max:100',
+            'deskripsi' => 'nullable|string|max:5000',
+            'fasilitas' => 'nullable|string|max:5000',
+            'urutan' => 'required|integer|min:0|max:999',
             'is_active' => 'nullable|boolean',
-            'gambar' => 'nullable|image|max:2048',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\TrainingService::statuses())),
+        ], [
+            'judul.max' => 'Judul maksimal 100 karakter.',
+            'urutan.max' => 'Urutan maksimal 999.',
+            'gambar.image' => 'File harus berupa gambar.',
+            'gambar.mimes' => 'Format gambar harus JPG, JPEG, atau PNG.',
+            'gambar.max' => 'Ukuran gambar maksimal 2 MB.',
         ]);
     }
 
