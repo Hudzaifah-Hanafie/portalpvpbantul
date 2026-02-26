@@ -61,14 +61,14 @@ class HomeController extends Controller
             ->get();
 
         // 4. Mengambil 8 Foto Galeri Terbaru
-        $galeris = Galeri::latest()->take(8)->get();
+        $galeris = Galeri::where('status', 'published')->latest()->take(8)->get();
 
-        $partners = Partner::where('is_active', true)->orderBy('urutan')->get();
-        $instructors = Instructor::where('is_active', true)->orderBy('urutan')->get();
-        $benefits = Benefit::where('is_active', true)->orderBy('urutan')->get();
+        $partners = Partner::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
+        $instructors = Instructor::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
+        $benefits = Benefit::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         $flowSteps = FlowStep::where('is_active', true)->orderBy('urutan')->get();
-        $testimonials = Testimonial::where('is_active', true)->orderBy('urutan')->get();
-        $trainingServices = TrainingService::where('is_active', true)->orderBy('urutan')->get();
+        $testimonials = Testimonial::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
+        $trainingServices = TrainingService::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         $settings = SiteSetting::pluck('value', 'key');
 
         // Mengirim semua data ke view 'home'
@@ -77,7 +77,7 @@ class HomeController extends Controller
 
     public function katalogPelatihan()
     {
-        $programs = Program::latest()->paginate(12);
+        $programs = Program::where('status', 'published')->latest()->paginate(12);
         return view('pelatihan.katalog', compact('programs'));
     }
 
@@ -94,7 +94,7 @@ class HomeController extends Controller
 
     public function pemberdayaan()
     {
-        $empowerments = Empowerment::where('is_active', true)->orderBy('urutan')->get();
+        $empowerments = Empowerment::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         return view('pelatihan.pemberdayaan', compact('empowerments'));
     }
 
@@ -130,7 +130,7 @@ class HomeController extends Controller
     public function lowonganKerja()
     {
         $vacanciesQuery = Schema::hasTable('job_vacancies')
-            ? JobVacancy::where('is_active', true)->latest()
+            ? JobVacancy::where('is_active', true)->where('status', 'published')->latest()
             : null;
 
         $vacancies = $vacanciesQuery?->paginate(9) ?? collect([]);
@@ -141,11 +141,12 @@ class HomeController extends Controller
 
     public function lowonganDetail(JobVacancy $lowongan)
     {
-        if (! $lowongan->is_active) {
+        if (! $lowongan->is_active || $lowongan->status !== 'published') {
             abort(404);
         }
 
         $relatedVacancies = JobVacancy::where('is_active', true)
+            ->where('status', 'published')
             ->where('id', '!=', $lowongan->id)
             ->latest()
             ->take(3)
@@ -163,8 +164,8 @@ class HomeController extends Controller
 
     public function sertifikasi()
     {
-        $sections = CertificationContent::where('is_active', true)->orderBy('urutan')->get()->groupBy('section');
-        $schemes = CertificationScheme::where('is_active', true)->orderBy('urutan')->get()->groupBy('category');
+        $sections = CertificationContent::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get()->groupBy('section');
+        $schemes = CertificationScheme::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get()->groupBy('category');
         $settings = SiteSetting::pluck('value', 'key');
         return view('sertifikasi.index', compact('sections', 'schemes', 'settings'));
     }
@@ -172,8 +173,15 @@ class HomeController extends Controller
     public function resourceInfografis()
     {
         $settings = SiteSetting::pluck('value', 'key');
-        $years = \App\Models\InfographicYear::with(['metrics', 'cards', 'embeds'])
+        $years = \App\Models\InfographicYear::with(['metrics' => function($q) {
+                $q->where('is_active', true)->where('status', 'published')->orderBy('urutan');
+            }, 'cards' => function($q) {
+                $q->where('is_active', true)->where('status', 'published')->orderBy('urutan');
+            }, 'embeds' => function($q) {
+                $q->where('is_active', true)->where('status', 'published')->orderBy('urutan');
+            }])
             ->where('is_active', true)
+            ->where('status', 'published')
             ->orderBy('urutan')
             ->get();
 
@@ -184,9 +192,10 @@ class HomeController extends Controller
     {
         $setting = PublicationSetting::first() ?? new PublicationSetting();
         $categories = PublicationCategory::with(['items' => function ($query) {
-                $query->where('is_active', true)->orderBy('urutan');
+                $query->where('is_active', true)->where('status', 'published')->orderBy('urutan');
             }])
             ->where('is_active', true)
+            ->where('status', 'published')
             ->orderBy('urutan')
             ->get();
 
@@ -205,6 +214,7 @@ class HomeController extends Controller
         ]);
 
         $flows = PublicServiceFlow::where('is_active', true)
+            ->where('status', 'published')
             ->orderBy('category')
             ->orderBy('urutan')
             ->get()
@@ -229,9 +239,10 @@ class HomeController extends Controller
         ]);
 
         $categories = FaqCategory::with(['items' => function ($query) {
-                $query->where('is_active', true)->orderBy('urutan');
+                $query->where('is_active', true)->where('status', 'published')->orderBy('urutan');
             }])
             ->where('is_active', true)
+            ->where('status', 'published')
             ->orderBy('urutan')
             ->get();
 
@@ -263,7 +274,7 @@ class HomeController extends Controller
             'cta_secondary_link' => 'https://wa.me/6281234567890',
         ]);
 
-        $channels = ContactChannel::where('is_active', true)->orderBy('urutan')->get();
+        $channels = ContactChannel::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         $captcha = $this->prepareCaptcha(self::CONTACT_CAPTCHA_KEY);
 
         return view('resource.hubungi', [
@@ -278,14 +289,14 @@ class HomeController extends Controller
     
     public function showBerita($slug)
     {
-        $berita = Berita::where('slug', $slug)->firstOrFail();
-        $beritaLain = Berita::where('id', '!=', $berita->id)->latest()->take(5)->get();
+        $berita = Berita::where('slug', $slug)->where('status', Berita::STATUS_PUBLISHED)->firstOrFail();
+        $beritaLain = Berita::where('id', '!=', $berita->id)->where('status', Berita::STATUS_PUBLISHED)->latest()->take(5)->get();
         return view('detail_berita', compact('berita', 'beritaLain'));
     }
 
     public function showProgram($id)
     {
-        $program = Program::findOrFail($id);
+        $program = Program::where('status', 'published')->findOrFail($id);
         return view('detail_program', compact('program'));
     }
 
@@ -311,7 +322,7 @@ class HomeController extends Controller
             'form_title' => 'Permohonan Informasi Publik',
             'form_description' => 'Isi formulir berikut untuk mengajukan permohonan informasi.',
         ]);
-        $highlights = PpidHighlight::where('is_active', true)->orderBy('urutan')->get();
+        $highlights = PpidHighlight::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         $captcha = $this->prepareCaptcha(self::PPID_CAPTCHA_KEY);
 
         return view('ppid', [
@@ -415,19 +426,28 @@ class HomeController extends Controller
         }
 
         // 2. Cari di Tabel BERITA (Judul ATAU Konten yang mengandung keyword)
-        $beritaResults = Berita::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('konten', 'LIKE', "%{$keyword}%")
+        $beritaResults = Berita::where('status', Berita::STATUS_PUBLISHED)
+                            ->where(function($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                      ->orWhere('konten', 'LIKE', "%{$keyword}%");
+                            })
                             ->latest()
                             ->get();
 
         // 3. Cari di Tabel PROGRAM (Judul ATAU Deskripsi yang mengandung keyword)
-        $programResults = Program::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('deskripsi', 'LIKE', "%{$keyword}%")
+        $programResults = Program::where('status', 'published')
+                            ->where(function($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                      ->orWhere('deskripsi', 'LIKE', "%{$keyword}%");
+                            })
                             ->get();
 
         // 4. Cari di Tabel PENGUMUMAN (Opsional, agar makin lengkap)
-        $pengumumanResults = Pengumuman::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('isi', 'LIKE', "%{$keyword}%")
+        $pengumumanResults = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+                            ->where(function($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                      ->orWhere('isi', 'LIKE', "%{$keyword}%");
+                            })
                             ->latest()
                             ->get();
 
@@ -496,7 +516,7 @@ class HomeController extends Controller
         );
         $visiMisi = Profile::where('key', 'visi_misi')->first();
         $structures = OrgStructure::with('children.children')->whereNull('parent_id')->orderBy('urutan')->get();
-        $galeris = Galeri::latest()->take(6)->get();
+        $galeris = Galeri::where('status', 'published')->latest()->take(6)->get();
         $settings = SiteSetting::pluck('value', 'key');
 
         return view('profil.instansi', compact('profilInstansi', 'selayang', 'visiMisi', 'structures', 'galeris', 'denah', 'settings', 'sejarah', 'strukturProfile'));
@@ -504,14 +524,14 @@ class HomeController extends Controller
 
     public function profilInstruktur()
     {
-        $instructors = Instructor::where('is_active', true)->orderBy('urutan')->get();
+        $instructors = Instructor::where('is_active', true)->where('status', 'published')->orderBy('urutan')->get();
         $settings = SiteSetting::pluck('value', 'key');
         return view('profil.instruktur', compact('instructors', 'settings'));
     }
 
     public function alumniTracerForm()
     {
-        $programs = Program::orderBy('judul')->get();
+        $programs = Program::where('status', 'published')->orderBy('judul')->get();
         $captcha = $this->prepareCaptcha(self::TRACER_CAPTCHA_KEY);
 
         return view('alumni.tracer', [
@@ -542,7 +562,7 @@ class HomeController extends Controller
             ]);
         }
 
-        $programName = $request->input('program_name') ?: optional(Program::find($request->input('program_id')))->judul;
+        $programName = $request->input('program_name') ?: optional(Program::where('status', 'published')->find($request->input('program_id')))->judul;
         $user = $email ? User::where('email', $email)->first() : null;
 
         $alumniTracer = AlumniTracer::create(array_merge(

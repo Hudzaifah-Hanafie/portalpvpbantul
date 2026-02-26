@@ -109,15 +109,20 @@ class BenefitController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'ikon' => 'nullable|string|max:255',
             'ikon_file' => 'nullable|image|max:2048',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\Benefit::statuses())),
         ]);
+
+        $data['urutan'] = $data['urutan'] ?? 0;
+        $data['is_active'] = $request->boolean('is_active');
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Benefit $benefit = null): void
