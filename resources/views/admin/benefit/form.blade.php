@@ -6,22 +6,33 @@
         <h5 class="mb-0">{{ $benefit->exists ? 'Edit' : 'Tambah' }} Benefit</h5>
     </div>
     <div class="card-body">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if($method === 'PUT') @method('PUT') @endif
             <div class="mb-3">
                 <label class="form-label fw-bold">Judul</label>
-                <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul', $benefit->judul) }}" required>
+                <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul', $benefit->judul) }}" required maxlength="255">
                 @error('judul') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Deskripsi</label>
-                <textarea name="deskripsi" rows="3" class="form-control @error('deskripsi') is-invalid @enderror">{{ old('deskripsi', $benefit->deskripsi) }}</textarea>
+                <textarea name="deskripsi" rows="3" class="form-control @error('deskripsi') is-invalid @enderror" maxlength="1000">{{ old('deskripsi', $benefit->deskripsi) }}</textarea>
                 @error('deskripsi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <small class="text-muted">Maksimal 1000 karakter.</small>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Ikon (URL)</label>
-                <input type="text" name="ikon" class="form-control @error('ikon') is-invalid @enderror" value="{{ old('ikon', $benefit->ikon) }}" placeholder="https://...">
+                <input type="text" name="ikon" class="form-control @error('ikon') is-invalid @enderror" value="{{ old('ikon', $benefit->ikon) }}" placeholder="https://..." maxlength="255">
                 @error('ikon') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 <small class="text-muted">Boleh dikosongkan jika mengunggah file di bawah.</small>
             </div>
@@ -30,9 +41,10 @@
                 @if($benefit->ikon && !str_starts_with($benefit->ikon, 'http'))
                     <div class="mb-2"><img src="{{ asset($benefit->ikon) }}" width="60" class="img-thumbnail"></div>
                 @endif
-                <input type="file" name="ikon_file" class="form-control @error('ikon_file') is-invalid @enderror" accept="image/*">
+                <input type="file" id="ikon_file" name="ikon_file" class="form-control @error('ikon_file') is-invalid @enderror" accept="image/*">
+                <div id="file-size-error" class="text-danger small mt-1" style="display:none;">Ukuran file yang dipilih terlalu besar (Maksimal 2MB)</div>
                 @error('ikon_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <small class="text-muted">PNG/JPG maks 2MB. Jika diisi, akan menimpa ikon URL.</small>
+                <small class="text-muted">Format: JPG, JPEG, PNG, SVG. Maksimal 2MB. Jika diisi, akan menimpa ikon URL.</small>
             </div>
             <div class="row g-3">
                 <div class="col-md-6">
@@ -62,3 +74,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('ikon_file').addEventListener('change', function() {
+        const file = this.files[0];
+        const errorDiv = document.getElementById('file-size-error');
+        const maxSize = 2 * 1024 * 1024; // 2MB
+
+        if (file && file.size > maxSize) {
+            errorDiv.style.display = 'block';
+            this.value = ''; // Reset input file
+            this.classList.add('is-invalid');
+        } else {
+            errorDiv.style.display = 'none';
+            this.classList.remove('is-invalid');
+        }
+    });
+</script>
+@endpush

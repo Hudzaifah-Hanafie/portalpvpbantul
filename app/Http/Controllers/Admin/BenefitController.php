@@ -111,9 +111,9 @@ class BenefitController extends Controller
     {
         $data = $request->validate([
             'judul' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'deskripsi' => 'nullable|string|max:1000',
             'ikon' => 'nullable|string|max:255',
-            'ikon_file' => 'nullable|image|max:2048',
+            'ikon_file' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\Benefit::statuses())),
