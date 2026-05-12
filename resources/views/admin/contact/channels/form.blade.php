@@ -7,7 +7,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $isEdit ? 'Edit' : 'Tambah' }} Channel Kontak</h4>
+        <h4 class="mb-0">{{ $isEdit ? 'Ubah' : 'Tambah' }} Saluran Kontak</h4>
         <small class="text-muted">Isi informasi sesuai dengan kartu yang ingin ditampilkan pada halaman Hubungi Kami.</small>
     </div>
     <a href="{{ route('admin.contact-channel.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -42,7 +42,7 @@
             @error('label') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-6">
-            <label class="form-label">Link (opsional)</label>
+            <label class="form-label">Tautan (opsional)</label>
             <input type="text" name="link" class="form-control @error('link') is-invalid @enderror" value="{{ old('link', $channel->link) }}" placeholder="https://..." maxlength="255">
             @error('link') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
@@ -65,7 +65,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $isEdit ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $isEdit ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

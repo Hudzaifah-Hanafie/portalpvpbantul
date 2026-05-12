@@ -40,7 +40,7 @@
                     @error('hero_button_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Link Tombol</label>
+                    <label class="form-label">Tautan Tombol</label>
                     <input type="text" name="hero_button_link" class="form-control @error('hero_button_link') is-invalid @enderror" value="{{ old('hero_button_link', $setting->hero_button_link) }}" maxlength="255">
                     @error('hero_button_link') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
@@ -146,7 +146,7 @@
                     <input type="text" name="standard_document_badge" class="form-control" value="{{ old('standard_document_badge', $setting->standard_document_badge) }}">
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Upload Dokumen (PDF)</label>
+                    <label class="form-label">Unggah Dokumen (PDF)</label>
                     <input type="file" name="standard_document_file" class="form-control @error('standard_document_file') is-invalid @enderror" accept=".pdf">
                     <small class="text-muted d-block">Format PDF, ukuran maksimal 4 MB.</small>
                     @error('standard_document_file') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
@@ -187,12 +187,12 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Tombol Utama</label>
                     <input type="text" name="cta_primary_text" class="form-control mb-2" placeholder="Teks" value="{{ old('cta_primary_text', $setting->cta_primary_text) }}">
-                    <input type="text" name="cta_primary_link" class="form-control" placeholder="Link" value="{{ old('cta_primary_link', $setting->cta_primary_link) }}">
+                    <input type="text" name="cta_primary_link" class="form-control" placeholder="Tautan" value="{{ old('cta_primary_link', $setting->cta_primary_link) }}">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Tombol Kedua</label>
                     <input type="text" name="cta_secondary_text" class="form-control mb-2" placeholder="Teks" value="{{ old('cta_secondary_text', $setting->cta_secondary_text) }}">
-                    <input type="text" name="cta_secondary_link" class="form-control" placeholder="Link" value="{{ old('cta_secondary_link', $setting->cta_secondary_link) }}">
+                    <input type="text" name="cta_secondary_link" class="form-control" placeholder="Tautan" value="{{ old('cta_secondary_link', $setting->cta_secondary_link) }}">
                 </div>
             </div>
         </div>

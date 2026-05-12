@@ -8,7 +8,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Enrollment Peserta</h4>
+        <h4 class="mb-0">Pendaftaran Peserta</h4>
         <small class="text-muted">Data peserta berasal dari portal (akun SIAP Kerja) dan diproses untuk seleksi lokal.</small>
     </div>
     <div class="d-flex gap-2">
@@ -17,8 +17,8 @@
             <button class="btn btn-outline-secondary btn-sm">Sinkronisasi Skillhub</button>
         </form>
         <a href="{{ route('admin.interview-session.index') }}" class="btn btn-outline-secondary btn-sm">Jadwal Wawancara</a>
-        <a href="{{ route('admin.course-enrollment.ranking') }}" class="btn btn-outline-primary btn-sm">Seleksi & Ranking</a>
-        <a href="{{ route('admin.course-enrollment.create') }}" class="btn btn-primary btn-sm">Tambah Enrollment</a>
+        <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.ranking' : 'admin.course-enrollment.ranking')) }}" class="btn btn-outline-primary btn-sm">Seleksi & Ranking</a>
+        <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.create' : 'admin.course-enrollment.create')) }}" class="btn btn-primary btn-sm">Tambah Pendaftaran</a>
     </div>
 </div>
 
@@ -28,7 +28,7 @@
 
 @php
     $filterBase = request()->query();
-    $filterLink = fn (array $overrides = []) => route('admin.course-enrollment.index', array_merge($filterBase, $overrides));
+    $filterLink = fn (array $overrides = []) => route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.index' : 'admin.course-enrollment.index'), array_merge($filterBase, $overrides));
 @endphp
 
 <div class="row g-3 mb-4">
@@ -141,16 +141,40 @@
             </div>
             @if(request('status') || request('class_id') || request('user_id') || request('admin_status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-enrollment.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.index' : 'admin.course-enrollment.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
 
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
+        <form method="POST" action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.bulk' : 'admin.course-enrollment.bulk')) }}">
+            @csrf
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label mb-1">Bulk Action</label>
+                    <select name="action" class="form-select form-select-sm" required>
+                        <option value="">Pilih aksi</option>
+                        <option value="verify_admin">Verifikasi Administrasi</option>
+                        <option value="reject_admin">Tolak Administrasi</option>
+                        <option value="approve">Setujui (Lulus)</option>
+                        <option value="activate">Aktifkan Kelas</option>
+                        <option value="reject">Tolak Peserta</option>
+                        <option value="block">Blokir Peserta</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-primary" onclick="return confirm('Jalankan aksi bulk pada peserta terpilih?')">Terapkan</button>
+                </div>
+                <div class="col-auto small text-muted">Pilih peserta di tabel untuk menjalankan aksi massal.</div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAllEnrollments">
+                            </th>
+                            <th>#</th>
                         <th>Peserta</th>
                         <th>Kelas</th>
                         <th>Verifikasi</th>
@@ -161,11 +185,14 @@
                         <th>Batas Forum</th>
                         <th class="text-end">Aksi</th>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse($enrollments as $enroll)
-                        <tr>
-                            <td>{{ $enrollments->firstItem() + $loop->index }}</td>
+                    </thead>
+                    <tbody>
+                        @forelse($enrollments as $enroll)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="ids[]" value="{{ $enroll->id }}" class="enrollment-checkbox">
+                                </td>
+                                <td>{{ $enrollments->firstItem() + $loop->index }}</td>
                             <td>{{ $enroll->user->name ?? $enroll->user_id }}</td>
                             <td>{{ $enroll->course->title ?? '-' }}</td>
                             <td>
@@ -233,7 +260,7 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1">
                                     @if($enroll->admin_status !== 'verified')
-                                        <form action="{{ route('admin.course-enrollment.verify', $enroll->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.verify' : 'admin.course-enrollment.verify'), $enroll->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="admin_status" value="verified">
@@ -241,7 +268,7 @@
                                         </form>
                                     @endif
                                     @if($enroll->admin_status !== 'rejected')
-                                        <form action="{{ route('admin.course-enrollment.verify', $enroll->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tandai peserta ini ditolak administrasi?')">
+                                        <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.verify' : 'admin.course-enrollment.verify'), $enroll->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tandai peserta ini ditolak administrasi?')">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="admin_status" value="rejected">
@@ -249,25 +276,38 @@
                                         </form>
                                     @endif
                                 </div>
-                                <a href="{{ route('admin.course-enrollment.edit', $enroll->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                <form action="{{ route('admin.course-enrollment.destroy', $enroll->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus enrollment ini?')">
+                                <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.edit' : 'admin.course-enrollment.edit'), $enroll->id) }}" class="btn btn-sm btn-warning">Ubah</a>
+                                <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.destroy' : 'admin.course-enrollment.destroy'), $enroll->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus enrollment ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-danger">Hapus</button>
                                 </form>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="text-center text-muted py-4">Belum ada enrollment.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="text-center text-muted py-4">Belum ada enrollment.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </form>
         <div class="mt-3">
             {{ $enrollments->links() }}
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    const selectAll = document.getElementById('selectAllEnrollments');
+    const checkboxes = document.querySelectorAll('.enrollment-checkbox');
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+        });
+    }
+</script>
+@endpush

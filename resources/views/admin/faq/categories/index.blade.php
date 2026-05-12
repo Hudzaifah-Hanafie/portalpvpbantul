@@ -33,7 +33,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.faq-category.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.faq-category.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </div>
@@ -73,7 +73,7 @@
                             <span class="badge {{ $category->is_active ? 'bg-success' : 'bg-dark' }}">{{ $category->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.faq-category.edit', $category) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{{ route('admin.faq-category.edit', $category) }}" class="btn btn-sm btn-warning">Ubah</a>
                             <form action="{{ route('admin.faq-category.destroy', $category) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus kategori ini?')">
                                 @csrf
                                 @method('DELETE')

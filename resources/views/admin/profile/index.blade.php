@@ -21,7 +21,7 @@
                     <td>{{ $p->updated_at->format('d M Y H:i') }}</td>
                     <td>
                         <a href="{{ route('admin.profile.edit', $p->id) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-edit me-1"></i> Edit Konten
+                            <i class="fas fa-edit me-1"></i> Ubah Konten
                         </a>
                     </td>
                 </tr>

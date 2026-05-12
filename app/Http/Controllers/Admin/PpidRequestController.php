@@ -54,10 +54,14 @@ class PpidRequestController extends Controller
         }
 
         // default baru: disimpan di disk lokal (non-public). Lama: di public.
-        if (Storage::exists($clean)) {
-            return ['disk' => config('filesystems.default', 'local'), 'path' => $clean];
+        if (Storage::disk('local')->exists($clean)) {
+            return ['disk' => 'local', 'path' => $clean];
         }
 
-        return ['disk' => 'public', 'path' => $clean];
+        if (Storage::disk('public')->exists($clean)) {
+            return ['disk' => 'public', 'path' => $clean];
+        }
+
+        return ['disk' => config('filesystems.default', 'local'), 'path' => $clean];
     }
 }

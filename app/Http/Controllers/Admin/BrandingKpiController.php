@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BrandingKpiRequest;
 use App\Models\BrandingKpiReport;
+use App\Models\BrandingKpiSyncLog;
+use App\Models\SiteSetting;
+use App\Services\BrandingKpiSyncService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class BrandingKpiController extends Controller
@@ -86,7 +90,102 @@ class BrandingKpiController extends Controller
 
         $years = BrandingKpiReport::select('year')->distinct()->orderByDesc('year')->pluck('year');
 
-        return view('admin.branding_kpi.index', compact('reports', 'latestReport', 'chartData', 'indicatorDefinitions', 'yearFilter', 'years'));
+        return view('admin.branding_kpi.index', compact(
+            'reports',
+            'latestReport',
+            'chartData',
+            'indicatorDefinitions',
+            'yearFilter',
+            'years'
+        ));
+    }
+
+    public function integrations()
+    {
+        $integrationSettings = [
+            'instagram_access_token' => SiteSetting::valueOf('branding_kpi_instagram_access_token'),
+            'instagram_user_id' => SiteSetting::valueOf('branding_kpi_instagram_user_id'),
+            'instagram_metric' => SiteSetting::valueOf('branding_kpi_instagram_metric', 'followers_count'),
+            'google_api_key' => SiteSetting::valueOf('branding_kpi_google_api_key'),
+            'google_place_id' => SiteSetting::valueOf('branding_kpi_google_place_id'),
+            'google_metric' => SiteSetting::valueOf('branding_kpi_google_metric', 'rating'),
+            'youtube_api_key' => SiteSetting::valueOf('branding_kpi_youtube_api_key'),
+            'youtube_channel_id' => SiteSetting::valueOf('branding_kpi_youtube_channel_id'),
+            'youtube_metric' => SiteSetting::valueOf('branding_kpi_youtube_metric', 'subscriberCount'),
+            'facebook_access_token' => SiteSetting::valueOf('branding_kpi_facebook_access_token'),
+            'facebook_page_id' => SiteSetting::valueOf('branding_kpi_facebook_page_id'),
+            'facebook_metric' => SiteSetting::valueOf('branding_kpi_facebook_metric', 'fan_count'),
+            'map_instagram' => SiteSetting::valueOf('branding_kpi_map_instagram', 'reach'),
+            'map_google' => SiteSetting::valueOf('branding_kpi_map_google', 'rating'),
+            'map_youtube' => SiteSetting::valueOf('branding_kpi_map_youtube', 'reach'),
+            'map_facebook' => SiteSetting::valueOf('branding_kpi_map_facebook', 'reach'),
+            'last_sync_at' => SiteSetting::valueOf('branding_kpi_last_sync_at'),
+            'last_sync_status' => SiteSetting::valueOf('branding_kpi_last_sync_status'),
+            'last_sync_message' => SiteSetting::valueOf('branding_kpi_last_sync_message'),
+        ];
+
+        $logs = BrandingKpiSyncLog::orderByDesc('synced_at')->paginate(20);
+        $indicatorDefinitions = config('branding_kpi.indicators');
+
+        return view('admin.branding_kpi.integrations', compact('integrationSettings', 'logs', 'indicatorDefinitions'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $data = $request->validate([
+            'instagram_access_token' => ['nullable', 'string', 'max:255'],
+            'instagram_user_id' => ['nullable', 'string', 'max:255'],
+            'instagram_metric' => ['nullable', 'string', 'max:64'],
+            'google_api_key' => ['nullable', 'string', 'max:255'],
+            'google_place_id' => ['nullable', 'string', 'max:255'],
+            'google_metric' => ['nullable', 'string', 'max:64'],
+            'youtube_api_key' => ['nullable', 'string', 'max:255'],
+            'youtube_channel_id' => ['nullable', 'string', 'max:255'],
+            'youtube_metric' => ['nullable', 'string', 'max:64'],
+            'facebook_access_token' => ['nullable', 'string', 'max:255'],
+            'facebook_page_id' => ['nullable', 'string', 'max:255'],
+            'facebook_metric' => ['nullable', 'string', 'max:64'],
+            'map_instagram' => ['nullable', 'string', 'in:reach,registrant,rating,partner'],
+            'map_google' => ['nullable', 'string', 'in:reach,registrant,rating,partner'],
+            'map_youtube' => ['nullable', 'string', 'in:reach,registrant,rating,partner'],
+            'map_facebook' => ['nullable', 'string', 'in:reach,registrant,rating,partner'],
+        ]);
+
+        $settingsMap = [
+            'branding_kpi_instagram_access_token' => $data['instagram_access_token'] ?? null,
+            'branding_kpi_instagram_user_id' => $data['instagram_user_id'] ?? null,
+            'branding_kpi_instagram_metric' => $data['instagram_metric'] ?? 'followers_count',
+            'branding_kpi_google_api_key' => $data['google_api_key'] ?? null,
+            'branding_kpi_google_place_id' => $data['google_place_id'] ?? null,
+            'branding_kpi_google_metric' => $data['google_metric'] ?? 'rating',
+            'branding_kpi_youtube_api_key' => $data['youtube_api_key'] ?? null,
+            'branding_kpi_youtube_channel_id' => $data['youtube_channel_id'] ?? null,
+            'branding_kpi_youtube_metric' => $data['youtube_metric'] ?? 'subscriberCount',
+            'branding_kpi_facebook_access_token' => $data['facebook_access_token'] ?? null,
+            'branding_kpi_facebook_page_id' => $data['facebook_page_id'] ?? null,
+            'branding_kpi_facebook_metric' => $data['facebook_metric'] ?? 'fan_count',
+            'branding_kpi_map_instagram' => $data['map_instagram'] ?? 'reach',
+            'branding_kpi_map_google' => $data['map_google'] ?? 'rating',
+            'branding_kpi_map_youtube' => $data['map_youtube'] ?? 'reach',
+            'branding_kpi_map_facebook' => $data['map_facebook'] ?? 'reach',
+        ];
+
+        foreach ($settingsMap as $key => $value) {
+            SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
+            Cache::forget("site_setting:{$key}");
+        }
+
+        return redirect()->route('admin.branding-kpi.integrations')->with('success', 'Pengaturan integrasi KPI berhasil disimpan.');
+    }
+
+    public function sync(BrandingKpiSyncService $syncService)
+    {
+        $result = $syncService->syncAll();
+
+        return redirect()->route('admin.branding-kpi.integrations')->with(
+            $result['status'] === 'success' ? 'success' : 'warning',
+            $result['message']
+        );
     }
 
     public function create()

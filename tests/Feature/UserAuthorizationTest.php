@@ -25,9 +25,10 @@ class UserAuthorizationTest extends TestCase
 
     public function test_user_with_permission_can_access_user_management(): void
     {
+        $accessAdmin = Permission::firstOrCreate(['name' => 'access-admin'], ['label' => 'Akses Admin']);
         $permission = Permission::firstOrCreate(['name' => 'manage-users'], ['label' => 'Kelola Pengguna']);
         $role = Role::create(['name' => 'manager', 'label' => 'Manager']);
-        $role->permissions()->attach($permission->id);
+        $role->permissions()->attach([$accessAdmin->id, $permission->id]);
 
         $user = User::factory()->create();
         $user->syncRoles([$role->id]);

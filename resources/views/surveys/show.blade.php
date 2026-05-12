@@ -229,7 +229,7 @@
                                 <x-ui.button variant="primary" class="d-none" id="section-submit" type="submit">Kirim Respons</x-ui.button>
                             </div>
                             @php
-                                $captchaProvider = env('SURVEY_CAPTCHA_PROVIDER', 'recaptcha');
+                                $captchaProvider = config('survey.captcha_provider', 'recaptcha');
                             @endphp
                             @if($captchaProvider === 'hcaptcha' && config('services.hcaptcha.site_key'))
                                 <div class="mt-3">
@@ -283,6 +283,16 @@
 </style>
 @endpush
 
+@php
+    $skipRulesPayload = $survey->skipRules->map(function ($r) {
+        return [
+            'question_id' => $r->survey_question_id,
+            'target_section_id' => $r->target_section_id,
+            'conditions' => $r->conditions,
+        ];
+    })->values();
+@endphp
+
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -295,13 +305,9 @@
         const progressBar = document.getElementById('section-progress');
         const form = document.getElementById('survey-form');
         const storageKey = 'survey-draft-{{ $survey->id }}';
-        const serverDraft = {!! json_encode($draftData ?? []) !!};
-        const skipRules = {!! $survey->skipRules->map(fn($r) => [
-            'question_id' => $r->survey_question_id,
-            'target_section_id' => $r->target_section_id,
-            'conditions' => $r->conditions,
-        ])->toJson() !!};
-        const sectionOrder = {!! $sections->pluck('id')->values()->toJson() !!};
+        const serverDraft = @json($draftData ?? []);
+        const skipRules = @json($skipRulesPayload);
+        const sectionOrder = @json($sections->pluck('id')->values());
 
         function updateView() {
             sections.forEach((sec, idx) => {
@@ -497,7 +503,7 @@
         updateOnline();
     });
 </script>
-@php $captchaProvider = env('SURVEY_CAPTCHA_PROVIDER', 'recaptcha'); @endphp
+@php $captchaProvider = config('survey.captcha_provider', 'recaptcha'); @endphp
 @if($captchaProvider === 'hcaptcha' && config('services.hcaptcha.site_key'))
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 @elseif($captchaProvider === 'turnstile' && config('services.turnstile.site_key'))

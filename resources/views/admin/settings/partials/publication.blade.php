@@ -37,7 +37,7 @@
                     @error('hero_button_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Link Tombol Hero</label>
+                    <label class="form-label">Tautan Tombol Hero</label>
                     <input type="url" name="hero_button_link" class="form-control @error('hero_button_link') is-invalid @enderror" value="{{ old('hero_button_link', $setting->hero_button_link) }}">
                     @error('hero_button_link') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

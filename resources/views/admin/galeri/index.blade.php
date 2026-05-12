@@ -7,7 +7,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Kelola Galeri Foto</h3>
-    <a href="{{ route('admin.galeri.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Upload Foto</a>
+    <a href="{{ route('admin.galeri.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Unggah Foto</a>
 </div>
 
 <form method="GET" class="row g-2 align-items-end mb-3">
@@ -25,7 +25,7 @@
     </div>
     @if(request('status'))
         <div class="col-auto">
-            <a href="{{ route('admin.galeri.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+            <a href="{{ route('admin.galeri.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
         </div>
     @endif
 </form>

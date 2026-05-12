@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseClass;
 use App\Models\CourseSession;
 use App\Services\ActivityLogger;
@@ -11,6 +12,8 @@ use Illuminate\Support\Str;
 
 class CourseSessionController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -22,6 +25,10 @@ class CourseSessionController extends Controller
         $classFilter = request('class_id');
 
         $query = CourseSession::with('course')->orderBy('start_at');
+        if ($this->isInstructorUser(request()->user())) {
+            $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+            $query->whereIn('course_class_id', $classIds);
+        }
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
         }
@@ -30,18 +37,18 @@ class CourseSessionController extends Controller
         }
 
         $sessions = $query->paginate(20)->withQueryString();
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
 
         return view('admin.course_session.index', compact('sessions', 'statusOptions', 'statusFilter', 'classes', 'classFilter'));
     }
 
     public function create()
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
         return view('admin.course_session.form', [
             'session' => new CourseSession(['is_active' => true, 'allow_download' => false]),
             'classes' => $classes,
-            'action' => route('admin.course-session.store'),
+            'action' => route($this->getRoutePrefix() . 'course-session.store'),
             'method' => 'POST',
         ]);
     }
@@ -49,6 +56,7 @@ class CourseSessionController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $data['attendance_code'] = $data['attendance_code'] ?: Str::upper(Str::random(8));
         $data['created_by'] = $request->user()->id;
         $this->applyWorkflow($request, $data);
@@ -61,28 +69,31 @@ class CourseSessionController extends Controller
             $session
         );
 
-        return redirect()->route('admin.course-session.index')->with('success', 'Sesi berhasil ditambahkan.');
+        return redirect()->route($this->getRoutePrefix() . 'course-session.index')->with('success', 'Sesi berhasil ditambahkan.');
     }
 
     public function edit(CourseSession $course_session)
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_session->course_class_id);
+        $classes = $this->scopedClassOptions(request()->user());
         return view('admin.course_session.form', [
             'session' => $course_session,
             'classes' => $classes,
-            'action' => route('admin.course-session.update', $course_session->id),
+            'action' => route($this->getRoutePrefix() . 'course-session.update', $course_session->id),
             'method' => 'PUT',
         ]);
     }
 
     public function qr(CourseSession $course_session)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_session->course_class_id);
         abort_unless($course_session->attendance_code, 404);
         return view('admin.course_session.qr', ['session' => $course_session]);
     }
 
     public function show(CourseSession $course_session)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_session->course_class_id);
         $course_session->load(['course']);
         $attendances = $course_session->attendances()->with('user')->latest('checked_at')->get();
         return view('admin.course_session.show', [
@@ -93,6 +104,7 @@ class CourseSessionController extends Controller
 
     public function cards(CourseSession $course_session)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_session->course_class_id);
         abort_unless($course_session->attendance_code, 404);
         $enrollments = \App\Models\CourseEnrollment::with('user')
             ->where('course_class_id', $course_session->course_class_id)
@@ -108,6 +120,8 @@ class CourseSessionController extends Controller
     public function update(Request $request, CourseSession $course_session)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $course_session->course_class_id);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $data['attendance_code'] = $data['attendance_code'] ?: ($course_session->attendance_code ?: Str::upper(Str::random(8)));
         $this->applyWorkflow($request, $data, $course_session);
         $course_session->update($data);
@@ -119,11 +133,12 @@ class CourseSessionController extends Controller
             $course_session
         );
 
-        return redirect()->route('admin.course-session.index')->with('success', 'Sesi diperbarui.');
+        return redirect()->route($this->getRoutePrefix() . 'course-session.index')->with('success', 'Sesi diperbarui.');
     }
 
     public function destroy(CourseSession $course_session)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_session->course_class_id);
         $this->logger->log(
             request()->user(),
             'course.session.deleted',
@@ -131,7 +146,7 @@ class CourseSessionController extends Controller
             $course_session
         );
         $course_session->delete();
-        return redirect()->route('admin.course-session.index')->with('success', 'Sesi dihapus.');
+        return redirect()->route($this->getRoutePrefix() . 'course-session.index')->with('success', 'Sesi dihapus.');
     }
 
     private function validateData(Request $request): array

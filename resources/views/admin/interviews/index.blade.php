@@ -38,7 +38,7 @@
                     <td>{{ $session->allocations->count() }}</td>
                     <td class="text-end">
                         <a href="{{ route('admin.interview-session.show', $session->id) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
-                        <a href="{{ route('admin.interview-session.edit', $session->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{{ route('admin.interview-session.edit', $session->id) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
                     </td>
                 </tr>
                 @empty

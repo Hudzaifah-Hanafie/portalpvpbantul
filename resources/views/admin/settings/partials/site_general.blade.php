@@ -42,7 +42,7 @@
                         <small class="text-muted">Atau unggah file di bawah.</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Upload gambar utama (maks 2MB)</label>
+                        <label class="form-label">Unggah gambar utama (maks 2MB)</label>
                         <input type="file" name="home_hero_image_upload" class="form-control" accept="image/*">
                     </div>
                     <div class="col-md-3">
@@ -88,7 +88,7 @@
                         <small class="text-muted">Atau unggah file di bawah.</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Upload Gambar (maks 2MB)</label>
+                        <label class="form-label">Unggah Gambar (maks 2MB)</label>
                         <input type="file" name="home_benefit_image_upload" class="form-control" accept="image/*">
                     </div>
                 </div>
@@ -134,7 +134,7 @@
                         <small class="text-muted">Atau unggah file di bawah.</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Upload Gambar (maks 2MB)</label>
+                        <label class="form-label">Unggah Gambar (maks 2MB)</label>
                         <input type="file" name="home_why_image_upload" class="form-control" accept="image/*">
                     </div>
                 </div>
@@ -161,7 +161,7 @@
                         <small class="text-muted">Atau unggah file di bawah.</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Upload Gambar (maks 2MB)</label>
+                        <label class="form-label">Unggah Gambar (maks 2MB)</label>
                         <input type="file" name="home_flow_image_upload" class="form-control" accept="image/*">
                     </div>
                 </div>
@@ -239,7 +239,7 @@
                         <input type="text" name="cta_button_1_text" class="form-control" value="{{ $settings['cta_button_1_text'] ?? '' }}" placeholder="Daftar Pelatihan">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tombol 1 Link</label>
+                        <label class="form-label">Tautan Tombol 1</label>
                         <input type="text" name="cta_button_1_link" class="form-control" value="{{ $settings['cta_button_1_link'] ?? '' }}" placeholder="https://...">
                     </div>
                     <div class="col-md-6">
@@ -247,7 +247,7 @@
                         <input type="text" name="cta_button_2_text" class="form-control" value="{{ $settings['cta_button_2_text'] ?? '' }}" placeholder="Hubungi Kami">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tombol 2 Link</label>
+                        <label class="form-label">Tautan Tombol 2</label>
                         <input type="text" name="cta_button_2_link" class="form-control" value="{{ $settings['cta_button_2_link'] ?? '' }}" placeholder="mailto:...">
                     </div>
                 </div>
@@ -298,7 +298,7 @@
                         <input type="text" name="footer_youtube" class="form-control" value="{{ $settings['footer_youtube'] ?? '' }}" placeholder="https://youtube.com/...">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">SP4N / Lapor Link</label>
+                        <label class="form-label">Tautan SP4N / Lapor</label>
                         <input type="text" name="footer_sp4n" class="form-control" value="{{ $settings['footer_sp4n'] ?? '' }}">
                     </div>
                 </div>

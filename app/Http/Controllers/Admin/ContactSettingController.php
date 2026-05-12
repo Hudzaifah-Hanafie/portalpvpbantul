@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ContactSetting;
 use Illuminate\Http\Request;
+use App\Support\HtmlSanitizer;
 
 class ContactSettingController extends Controller
 {
@@ -40,6 +41,9 @@ class ContactSettingController extends Controller
 
         if ($request->hasFile('hero_image')) {
             $data['hero_image'] = '/storage/' . $request->file('hero_image')->store('contact', 'public');
+        }
+        if (! empty($data['map_embed'])) {
+            $data['map_embed'] = HtmlSanitizer::cleanEmbed($data['map_embed']);
         }
 
         $setting->fill($data)->save();

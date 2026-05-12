@@ -6,7 +6,7 @@
         <h4 class="mb-0">Nilai Submission</h4>
         <small class="text-muted">Perbarui status dan nilai submission peserta.</small>
     </div>
-    <a href="{{ route('admin.course-submission.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? route('instructor.lms.course-submission.index') : route('admin.course-submission.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -34,7 +34,7 @@
                 @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label">Waktu Submit</label>
+                <label class="form-label">Waktu Pengumpulan</label>
                 <input type="text" class="form-control" value="{{ $submission->submitted_at ? $submission->submitted_at->format('d M Y H:i') : '-' }}" disabled>
             </div>
             <div class="col-md-4">

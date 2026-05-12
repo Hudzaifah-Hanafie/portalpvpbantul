@@ -48,8 +48,8 @@ class AssignmentDueReminder extends Notification implements ShouldQueue
 
     private function sendWebhook(object $notifiable, string $text): void
     {
-        foreach (['SMS_WEBHOOK_URL', 'WA_WEBHOOK_URL'] as $env) {
-            $url = env($env);
+        foreach (['sms', 'wa'] as $type) {
+            $url = config("notifications.webhooks.{$type}");
             if (! $url) continue;
             try {
                 Http::post($url, [

@@ -31,7 +31,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.instructor.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.instructor.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -74,7 +74,7 @@
                         <span class="badge {{ $instruktur->is_active ? 'bg-success' : 'bg-dark' }}">{{ $instruktur->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                     </td>
                     <td class="d-flex gap-2">
-                        <a href="{{ route('admin.instructor.edit', $instruktur->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{{ route('admin.instructor.edit', $instruktur->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                         <form action="{{ route('admin.instructor.destroy', $instruktur->id) }}" method="POST" onsubmit="return confirm('Hapus instruktur ini?')">
                             @csrf
                             @method('DELETE')

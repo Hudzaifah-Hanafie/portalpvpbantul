@@ -3,7 +3,7 @@
 @section('content')
 <div class="card shadow-sm border-0 col-lg-8">
     <div class="card-header bg-white">
-        <h5 class="mb-0">{{ $benefit->exists ? 'Edit' : 'Tambah' }} Benefit</h5>
+        <h5 class="mb-0">{{ $benefit->exists ? 'Ubah' : 'Tambah' }} Benefit</h5>
     </div>
     <div class="card-body">
         <form action="{{ $action }}" method="POST" enctype="multipart/form-data">

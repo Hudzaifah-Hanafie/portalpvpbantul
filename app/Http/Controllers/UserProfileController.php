@@ -20,6 +20,18 @@ class UserProfileController extends Controller
             'languages',
         ]);
 
+        if ($request->is('my/*')) {
+            if ($user->hasAnyRole(['instructor', 'instruktur'])) {
+                return view('instructor.profile.show', compact('user'));
+            }
+
+            if ($user->hasAnyRole(['superadmin', 'admin']) || $user->hasPermission('access-admin')) {
+                return view('admin.profile.show', compact('user'));
+            }
+
+            return view('participant.profile.show', compact('user'));
+        }
+
         return view('profile.show', compact('user'));
     }
 

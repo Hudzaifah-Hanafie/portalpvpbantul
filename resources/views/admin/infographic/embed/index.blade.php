@@ -7,7 +7,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3>Embed Dashboard</h3>
+        <h3>Embed Dasbor</h3>
         <p class="text-muted mb-0">Masukkan tautan Google Looker/Looker Studio untuk tiap tahun.</p>
     </div>
     <a href="{{ route('admin.infographic-embed.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Tambah Embed</a>
@@ -30,7 +30,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.infographic-embed.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.infographic-embed.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>

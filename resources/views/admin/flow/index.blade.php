@@ -18,7 +18,7 @@
                 <td>{{ $flow->urutan }}</td>
                 <td><span class="badge {{ $flow->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $flow->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
                 <td class="d-flex gap-2">
-                    <a href="{{ route('admin.flow.edit', $flow->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a href="{{ route('admin.flow.edit', $flow->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                     <form action="{{ route('admin.flow.destroy', $flow->id) }}" method="POST" onsubmit="return confirm('Hapus data?')">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm btn-outline-danger">Hapus</button>

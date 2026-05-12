@@ -27,7 +27,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.benefit.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.benefit.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -53,7 +53,7 @@
                         <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-dark' }}">{{ $item->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                     </td>
                     <td class="d-flex gap-2">
-                        <a href="{{ route('admin.benefit.edit', $item->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{{ route('admin.benefit.edit', $item->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                         <form action="{{ route('admin.benefit.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus data?')">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Hapus</button>

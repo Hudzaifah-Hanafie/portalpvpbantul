@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AlumniTracer;
 use App\Models\Berita;
 use App\Models\BrandingKpiReport;
+use App\Models\CourseClass;
+use App\Models\CourseEnrollment;
+use App\Models\CourseSession;
+use App\Models\CourseSubmission;
 use App\Models\JobVacancy;
 use App\Models\Pengumuman;
 use App\Models\Pesan;
@@ -87,6 +91,18 @@ class DashboardController extends Controller
         $latestBrandingKpi = BrandingKpiReport::orderByDesc('year')->orderByDesc('month')->first();
         $brandingIndicators = config('branding_kpi.indicators');
 
+        $trainingMetrics = [
+            'classes_total' => CourseClass::count(),
+            'classes_active' => CourseClass::where('is_active', true)->count(),
+            'enrollments_active' => CourseEnrollment::whereIn('status', ['approved', 'active'])->count(),
+            'enrollments_pending' => CourseEnrollment::where('admin_status', 'pending')->count(),
+            'pending_submissions' => CourseSubmission::where('status', 'submitted')->count(),
+        ];
+        $upcomingSessions = CourseSession::where('start_at', '>=', now())
+            ->orderBy('start_at')
+            ->limit(3)
+            ->get();
+
         return view('admin.dashboard', [
             'metrics' => $metrics,
             'recentActivities' => $recentActivities,
@@ -102,6 +118,8 @@ class DashboardController extends Controller
             'cohortStatusMap' => $statusMap,
             'latestBrandingKpi' => $latestBrandingKpi,
             'brandingIndicators' => $brandingIndicators,
+            'trainingMetrics' => $trainingMetrics,
+            'upcomingSessions' => $upcomingSessions,
         ]);
     }
 }

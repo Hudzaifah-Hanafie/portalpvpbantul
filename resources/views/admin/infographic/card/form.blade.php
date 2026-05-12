@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $card->exists ? 'Edit' : 'Tambah' }} Kartu</h3>
+    <h3>{{ $card->exists ? 'Ubah' : 'Tambah' }} Kartu</h3>
     <a href="{{ route('admin.infographic-card.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 

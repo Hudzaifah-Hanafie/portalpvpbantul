@@ -7,12 +7,13 @@ use Tests\TestCase;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
 use App\Models\SurveyQuestionOption;
+use PHPUnit\Framework\Attributes\Test;
 
 class SurveySmokeTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function survey_page_loads(): void
     {
         $response = $this->get('/survei/dummy');
@@ -20,7 +21,7 @@ class SurveySmokeTest extends TestCase
         $response->assertStatus(404); // route exists; 404 indicates slug not found but app responds.
     }
 
-    /** @test */
+    #[Test]
     public function user_can_submit_simple_survey(): void
     {
         config()->set('services.recaptcha.site_key', null);

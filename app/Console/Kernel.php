@@ -21,6 +21,8 @@ class Kernel extends ConsoleKernel
         // Sinkronisasi data pusat Skillhub
         $schedule->command('skillhub:sync')->hourly();
         $schedule->job(new SyncParticipantsJob())->hourlyAt(15);
+        // Sinkronisasi KPI Branding (Instagram) harian
+        $schedule->command('branding:kpi-sync')->dailyAt('01:00');
     }
 
     /**

@@ -25,7 +25,7 @@
             </div>
             @if(request('class_id'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-progress.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-progress.index' : 'admin.course-progress.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="card border-0 shadow-sm col-md-8 mx-auto">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Upload Foto Galeri</h5>
+        <h5 class="mb-0">Unggah Foto Galeri</h5>
     </div>
     <div class="card-body">
         @if ($errors->any())
@@ -57,7 +57,7 @@
                 @error('status') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
 
-            <button type="submit" class="btn btn-success">Upload</button>
+            <button type="submit" class="btn btn-success">Unggah</button>
             <a href="{{ route('admin.galeri.index') }}" class="btn btn-secondary">Batal</a>
         </form>
     </div>

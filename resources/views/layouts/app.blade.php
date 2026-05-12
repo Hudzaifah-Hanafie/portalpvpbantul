@@ -13,6 +13,9 @@
     $metaImage = $globalSettings['meta_image'] ?? asset('image/logo/logo_kemnaker.svg');
     $canonicalUrl = url()->current();
     $currentUser = auth()->user();
+    $hasLmsAccess = $currentUser?->enrollments()
+        ->whereIn('status', ['active', 'approved', 'completed', 'pending'])
+        ->exists();
 @endphp
     <title>{{ $metaTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
@@ -105,6 +108,17 @@
                         </button>
                     </form>
                     @auth
+                        @php
+                            $lmsRoute = null;
+                            if ($currentUser?->hasAnyRole(['instructor', 'instruktur'])) {
+                                $lmsRoute = route('instructor.dashboard');
+                            } elseif ($currentUser?->hasRole('participant')) {
+                                $lmsRoute = route('participant.dashboard');
+                            }
+                        @endphp
+                        @if($lmsRoute)
+                            <a href="{{ $lmsRoute }}" class="btn btn-primary btn-sm ms-2">Masuk LMS</a>
+                        @endif
                         <div class="dropdown ms-2">
                             <button class="btn btn-outline-secondary btn-sm rounded-circle p-2" type="button" id="alumniActions" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-placement="bottom" title="Menu akun" data-bs-toggle="tooltip">
                                 <i class="fas fa-user-circle fa-lg"></i>
@@ -118,6 +132,9 @@
                                     <li><hr class="my-1"></li>
                                 @endif
                                 <li><a class="dropdown-item" href="{{ route('profile.show') }}">Profil Saya</a></li>
+                                @if($lmsRoute)
+                                    <li><a class="dropdown-item" href="{{ $lmsRoute }}">Masuk LMS</a></li>
+                                @endif
                                 @if($currentUser?->hasRole('alumni'))
                                     <li><a class="dropdown-item" href="{{ route('alumni.tracer') }}">Tracer Study</a></li>
                                 @endif
@@ -190,7 +207,7 @@
                 <div class="col-md-6">
                     <h5 class="fw-bold">Lokasi</h5>
                     @if(!empty($settings['footer_embed_map']))
-                        {!! $settings['footer_embed_map'] !!}
+                        {!! \App\Support\HtmlSanitizer::cleanEmbed($settings['footer_embed_map']) !!}
                     @else
                         <div class="bg-dark bg-opacity-25 text-center py-4 rounded">Embed peta</div>
                     @endif

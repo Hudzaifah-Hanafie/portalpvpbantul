@@ -36,7 +36,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.program.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.program.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>

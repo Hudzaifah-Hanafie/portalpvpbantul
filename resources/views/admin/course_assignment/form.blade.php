@@ -2,15 +2,21 @@
 
 @php
     $statusOptions = \App\Models\CourseAssignment::statuses();
+    $assessmentOptions = $assessmentOptions ?? [
+        'regular' => 'Tugas/Quiz Reguler',
+        'module_quiz' => 'Quiz Akhir Bab',
+        'final_exam' => 'Ujian Final',
+        'final_project' => 'Proyek Akhir',
+    ];
 @endphp
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $assignment->exists ? 'Edit' : 'Tambah' }} Tugas</h4>
+        <h4 class="mb-0">{{ $assignment->exists ? 'Ubah' : 'Tambah' }} Tugas</h4>
         <small class="text-muted">Setel detail tugas/quiz, due date, dan status publikasi.</small>
     </div>
-    <a href="{{ route('admin.course-assignment.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-assignment.index' : 'admin.course-assignment.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
@@ -43,6 +49,25 @@
 
     <div class="row g-3">
         <div class="col-md-4">
+            <label class="form-label">Kategori Penilaian</label>
+            <select name="assessment_type" class="form-select @error('assessment_type') is-invalid @enderror" id="assessmentTypeSelect">
+                @foreach($assessmentOptions as $key => $label)
+                    <option value="{{ $key }}" @selected(old('assessment_type', $assignment->assessment_type ?? 'regular') === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error('assessment_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4" id="moduleSelectWrap" style="display: none;">
+            <label class="form-label">Bab (Modul)</label>
+            <select name="course_module_id" class="form-select @error('course_module_id') is-invalid @enderror">
+                <option value="">Pilih bab</option>
+                @foreach($modules as $id => $title)
+                    <option value="{{ $id }}" @selected(old('course_module_id', $assignment->course_module_id) === $id)>{{ $title }}</option>
+                @endforeach
+            </select>
+            @error('course_module_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4">
             <label class="form-label">Tipe</label>
             <select name="type" class="form-select @error('type') is-invalid @enderror">
                 <option value="essay" @selected(old('type', $assignment->type) === 'essay')>Essay</option>
@@ -50,6 +75,15 @@
                 <option value="quiz" @selected(old('type', $assignment->type) === 'quiz')>Quiz</option>
             </select>
             @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4" id="quizScopeWrap" style="display: none;">
+            <label class="form-label">Jenis CBT</label>
+            <select name="quiz_scope" class="form-select @error('quiz_scope') is-invalid @enderror">
+                <option value="class" @selected(old('quiz_scope', $assignment->quiz_scope ?? 'class') === 'class')>CBT Kelas</option>
+                <option value="selection" @selected(old('quiz_scope', $assignment->quiz_scope) === 'selection')>CBT Seleksi</option>
+            </select>
+            <small class="text-muted">CBT seleksi akan mengisi nilai pendaftaran.</small>
+            @error('quiz_scope') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4">
             <label class="form-label">Due Date</label>
@@ -179,7 +213,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $assignment->exists ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $assignment->exists ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 
@@ -187,7 +221,10 @@
 <script>
 (function () {
     const typeSelect = document.querySelector('select[name="type"]');
+    const assessmentTypeSelect = document.getElementById('assessmentTypeSelect');
+    const moduleSelectWrap = document.getElementById('moduleSelectWrap');
     const quizPanel = document.getElementById('quizPanel');
+    const quizScopeWrap = document.getElementById('quizScopeWrap');
     const quizQuestionsEl = document.getElementById('quizQuestions');
     const addQuestionBtn = document.getElementById('addQuestionBtn');
     const quizSchemaInput = document.getElementById('quizSchemaInput');
@@ -198,7 +235,7 @@
     const rubricList = document.getElementById('rubricList');
     const addRubricBtn = document.getElementById('addRubricBtn');
 
-    if (!typeSelect) return;
+    if (!typeSelect || !assessmentTypeSelect) return;
 
     let questions = [];
     let rubrics = [];
@@ -437,6 +474,7 @@
     typeSelect.addEventListener('change', function () {
         const isQuiz = this.value === 'quiz';
         quizPanel.style.display = isQuiz ? 'block' : 'none';
+        if (quizScopeWrap) quizScopeWrap.style.display = isQuiz ? 'block' : 'none';
         if (isQuiz && !questions.length) {
             addQuestion();
         }
@@ -448,8 +486,29 @@
         }
     });
 
+    assessmentTypeSelect.addEventListener('change', function () {
+        const assessment = this.value;
+        const isModuleQuiz = assessment === 'module_quiz';
+        const isFinalExam = assessment === 'final_exam';
+        const isFinalProject = assessment === 'final_project';
+
+        if (moduleSelectWrap) moduleSelectWrap.style.display = isModuleQuiz ? 'block' : 'none';
+
+        if (isModuleQuiz || isFinalExam) {
+            typeSelect.value = 'quiz';
+            typeSelect.dispatchEvent(new Event('change'));
+        } else if (isFinalProject) {
+            typeSelect.value = 'file';
+            typeSelect.dispatchEvent(new Event('change'));
+        }
+    });
+
     // initial state
     quizPanel.style.display = typeSelect.value === 'quiz' ? 'block' : 'none';
+    if (quizScopeWrap) quizScopeWrap.style.display = typeSelect.value === 'quiz' ? 'block' : 'none';
+    if (moduleSelectWrap) {
+        moduleSelectWrap.style.display = assessmentTypeSelect.value === 'module_quiz' ? 'block' : 'none';
+    }
     loadInitial();
 
     // ensure sync on submit

@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="mb-1">{{ $report->exists ? 'Edit' : 'Tambah' }} Laporan KPI Branding</h3>
+        <h3 class="mb-1">{{ $report->exists ? 'Ubah' : 'Tambah' }} Laporan KPI Branding</h3>
         <p class="text-muted mb-0">Isi capaian KPI branding per bulan.</p>
     </div>
     <a href="{{ route('admin.branding-kpi.index') }}" class="btn btn-secondary">Kembali</a>

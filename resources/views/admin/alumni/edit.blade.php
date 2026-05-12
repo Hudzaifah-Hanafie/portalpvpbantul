@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>Edit Alumni</h3>
+    <h3>Ubah Alumni</h3>
     <a href="{{ route('admin.alumni.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
 </div>
 

@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\HasUuid;
 use App\Models\CourseAnnouncement;
+use App\Models\CourseModule;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CourseClass extends Model
 {
-    use HasUuid;
+    use HasUuid, SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -19,6 +21,7 @@ class CourseClass extends Model
         'prerequisites',
         'competencies',
         'badge',
+        'tags',
         'is_active',
         'status',
         'instructor_id',
@@ -26,14 +29,27 @@ class CourseClass extends Model
         'approved_by',
         'approved_at',
         'published_at',
+        'min_attendance',
+        'min_score',
+        'require_final_project',
+        'require_final_exam',
+        'weight_theory',
+        'weight_practice',
+        'weight_attitude',
     ];
 
     protected $casts = [
         'prerequisites' => 'array',
         'competencies' => 'array',
+        'tags' => 'array',
         'is_active' => 'boolean',
         'approved_at' => 'datetime',
         'published_at' => 'datetime',
+        'require_final_project' => 'boolean',
+        'require_final_exam' => 'boolean',
+        'weight_theory' => 'integer',
+        'weight_practice' => 'integer',
+        'weight_attitude' => 'integer',
     ];
 
     public static function statuses(): array
@@ -63,6 +79,16 @@ class CourseClass extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(CourseAssignment::class)->orderBy('due_at');
+    }
+
+    public function modules(): HasMany
+    {
+        return $this->hasMany(CourseModule::class)->orderBy('sort_order');
+    }
+
+    public function curricula(): HasMany
+    {
+        return $this->hasMany(CourseCurriculum::class, 'course_class_id');
     }
 
     public function announcements(): HasMany

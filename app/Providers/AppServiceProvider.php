@@ -9,6 +9,10 @@ use App\Models\CourseEnrollment;
 use App\Observers\CourseEnrollmentObserver;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +30,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+        if ($this->app->environment('production')) {
+            $appUrl = config('app.url');
+            if ($appUrl) {
+                URL::forceRootUrl($appUrl);
+            }
+            URL::forceScheme('https');
+        }
         if (Schema::hasTable('site_settings')) {
             $mailer = SiteSetting::valueOf('mail_mailer');
             if ($mailer) {
@@ -86,5 +97,45 @@ class AppServiceProvider extends ServiceProvider
         });
 
         CourseEnrollment::observe(CourseEnrollmentObserver::class);
+
+        // 1. AUTO-CACHE INVALIDATION OBSERVERS
+        // Otomatis menghancurkan memori statis apabila Admin CMS merilis konten baru.
+        // Dengan ini public landing page akan 100% Real-Time.
+        \App\Models\Berita::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_berita_terbaru'));
+        \App\Models\Berita::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_berita_terbaru'));
+
+        \App\Models\Program::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_programs'));
+        \App\Models\Program::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_programs'));
+
+        \App\Models\Pengumuman::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_announcements'));
+        \App\Models\Pengumuman::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_announcements'));
+
+        \App\Models\Galeri::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_galeris'));
+        \App\Models\Galeri::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_galeris'));
+
+        SiteSetting::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_settings'));
+        SiteSetting::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_settings'));
+
+        RateLimiter::for('api-login', function (Request $request) {
+            $email = (string) $request->input('email', '');
+            $key = strtolower($email) . '|' . $request->ip();
+            return Limit::perMinute(10)->by($key);
+        });
+
+        RateLimiter::for('api-user-management', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+            return Limit::perMinute(60)->by($key);
+        });
+
+        // 2. DECOUPLED MIDDLEWARE RATE LIMITER
+        // Memisahkan jalur pengunjung web (CMS) dan pengumpul tugas CBT (LMS)
+        RateLimiter::for('cms-public', function (Request $request) {
+            return Limit::perMinute(300)->by($request->ip()); // Sangat longgar untuk masyarakat
+        });
+
+        RateLimiter::for('lms-submit', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+            return Limit::perMinute(20)->by($key); // Sangat ketat agar DDoS submission tidak membunuh server Database
+        });
     }
 }

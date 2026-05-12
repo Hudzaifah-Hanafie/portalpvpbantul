@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $embed->exists ? 'Edit' : 'Tambah' }} Embed</h3>
+    <h3>{{ $embed->exists ? 'Ubah' : 'Tambah' }} Embed</h3>
     <a href="{{ route('admin.infographic-embed.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 

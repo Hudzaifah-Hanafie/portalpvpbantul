@@ -19,14 +19,14 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Analitik Survey: {{ $survey->title }}</h4>
+        <h4 class="mb-0">Analitik Survei: {{ $survey->title }}</h4>
         <small class="text-muted">Pantau tren respons dan detail jawaban.</small>
     </div>
     <div class="btn-group">
-        <a href="{{ route('admin.surveys.edit', $survey) }}" class="btn btn-outline-secondary btn-sm">Edit Survey</a>
+        <a href="{{ route('admin.surveys.edit', $survey) }}" class="btn btn-outline-secondary btn-sm">Ubah Survei</a>
         <a href="{{ route('surveys.show', $survey) }}" class="btn btn-outline-dark btn-sm" target="_blank">Lihat Form</a>
-        <a href="{{ route('admin.surveys.export', $survey) }}" class="btn btn-outline-primary btn-sm">Export CSV</a>
-        <a href="{{ route('admin.surveys.export-xlsx', $survey) }}" class="btn btn-outline-success btn-sm">Export XLSX</a>
+        <a href="{{ route('admin.surveys.export', $survey) }}" class="btn btn-outline-primary btn-sm">Ekspor CSV</a>
+        <a href="{{ route('admin.surveys.export-xlsx', $survey) }}" class="btn btn-outline-success btn-sm">Ekspor XLSX</a>
         <a href="{{ route('admin.surveys.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>
     </div>
@@ -41,14 +41,14 @@
     </div>
     <div class="col-md-3">
         <div class="border rounded-3 p-3 h-100">
-            <div class="text-muted small mb-1">Responden Login</div>
+            <div class="text-muted small mb-1">Responden Masuk</div>
             <div class="fs-3 fw-bold">{{ $uniqueRespondents }}</div>
             <small class="text-muted">Kebutuhan login: {{ $survey->require_login ? 'Ya' : 'Opsional' }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="border rounded-3 p-3 h-100">
-            <div class="text-muted small mb-1">Status Survey</div>
+            <div class="text-muted small mb-1">Status Survei</div>
             <div class="fs-3 fw-bold">{{ $survey->isOpen() ? 'Terbuka' : 'Tutup' }}</div>
             <small class="text-muted">
                 @if($survey->opens_at) Dibuka {{ $survey->opens_at->format('d M Y H:i') }} @else Tanpa jadwal @endif
@@ -163,14 +163,35 @@
 </div>
 @endsection
 
+@php
+    $questionStatsPayload = collect($questionStats)->map(function ($s) {
+        return [
+            'question_id' => $s['question']->id,
+            'type' => $s['question']->type,
+            'option_stats' => $s['option_stats'] ?? null,
+            'scale' => $s['scale'] ?? null,
+        ];
+    })->values();
+    $sectionCompletionPayload = $sections->map(function ($section) use ($survey) {
+        $totalResponses = $survey->responses_count ?: $survey->responses()->count();
+        $answered = $totalResponses
+            ? \App\Models\SurveyAnswer::whereHas('question', fn($q)=>$q->where('survey_section_id', $section->id))
+                ->distinct('survey_response_id')
+                ->count('survey_response_id')
+            : 0;
+        $percent = $totalResponses ? round(($answered / $totalResponses) * 100, 1) : 0;
+        return ['label' => $section->title, 'percent' => $percent];
+    })->values();
+@endphp
+
 @push('scripts')
 <script>
     const dailyCtx = document.getElementById('dailyResponsesChart').getContext('2d');
     const dailyData = {
-        labels: {!! $dailyResponses->map(fn($row) => Carbon::parse($row->date)->format('d M'))->toJson() !!},
+        labels: @json($dailyResponses->map(fn($row) => Carbon::parse($row->date)->format('d M'))),
         datasets: [{
             label: 'Respons',
-            data: {!! $dailyResponses->pluck('total')->toJson() !!},
+            data: @json($dailyResponses->pluck('total')),
             borderColor: '#2563eb',
             backgroundColor: 'rgba(37,99,235,0.2)',
             tension: 0.4,
@@ -186,14 +207,7 @@
         }
     });
 
-    const questionStats = {!! collect($questionStats)->map(function($s){
-        return [
-            'question_id' => $s['question']->id,
-            'type' => $s['question']->type,
-            'option_stats' => $s['option_stats'] ?? null,
-            'scale' => $s['scale'] ?? null,
-        ];
-    })->toJson() !!};
+    const questionStats = @json($questionStatsPayload);
 
     document.querySelectorAll('.question-chart').forEach((canvas) => {
         const qid = canvas.dataset.question;
@@ -220,12 +234,7 @@
     });
 
     @if($sections->count())
-    const sectionCompletion = {!! $sections->map(function($section) use ($survey) {
-        $totalResponses = $survey->responses_count ?: $survey->responses()->count();
-        $answered = $totalResponses ? \App\Models\SurveyAnswer::whereHas('question', fn($q)=>$q->where('survey_section_id',$section->id))->distinct('survey_response_id')->count('survey_response_id') : 0;
-        $percent = $totalResponses ? round(($answered / $totalResponses) * 100, 1) : 0;
-        return ['label'=>$section->title, 'percent'=>$percent];
-    })->toJson() !!};
+    const sectionCompletion = @json($sectionCompletionPayload);
     const sectionCtx = document.getElementById('sectionCompletionChart').getContext('2d');
     new Chart(sectionCtx, {
         type: 'bar',

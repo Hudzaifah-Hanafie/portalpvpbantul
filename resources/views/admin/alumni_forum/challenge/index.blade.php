@@ -25,7 +25,7 @@
                             <span class="badge bg-success mb-2">Aktif</span>
                         @endif
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.alumni-forum.challenge.edit', $challenge) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{{ route('admin.alumni-forum.challenge.edit', $challenge) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
                             <form action="{{ route('admin.alumni-forum.challenge.destroy', $challenge) }}" method="POST">
                                 @csrf
                                 @method('DELETE')

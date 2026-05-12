@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $metric->exists ? 'Edit' : 'Tambah' }} Metric</h3>
+    <h3>{{ $metric->exists ? 'Ubah' : 'Tambah' }} Metric</h3>
     <a href="{{ route('admin.infographic-metric.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 

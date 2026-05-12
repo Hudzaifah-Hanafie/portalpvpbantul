@@ -3,10 +3,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Import Enrollment</h4>
-        <small class="text-muted">Upload CSV dengan kolom pertama: email peserta.</small>
+        <h4 class="mb-0">Impor Pendaftaran</h4>
+        <small class="text-muted">Unggah CSV dengan kolom pertama: email peserta.</small>
     </div>
-    <a href="{{ route('admin.course-enrollment.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.index' : 'admin.course-enrollment.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -22,7 +22,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.course-enrollment.import.store') }}" method="POST" enctype="multipart/form-data" class="row g-3">
+        <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.import.store' : 'admin.course-enrollment.import.store')) }}" method="POST" enctype="multipart/form-data" class="row g-3">
             @csrf
             <div class="col-md-6">
                 <label class="form-label">Kelas</label>
@@ -41,7 +41,7 @@
                 @error('csv_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="text-end">
-                <button class="btn btn-primary px-4">Import</button>
+                <button class="btn btn-primary px-4">Impor</button>
             </div>
         </form>
     </div>

@@ -4,13 +4,16 @@ namespace App\Models;
 
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\CourseAttendance;
+use App\Models\CourseSubmission;
 
 class CourseEnrollment extends Model
 {
-    use HasUuid;
+    use HasUuid, SoftDeletes;
 
     protected $fillable = [
         'course_class_id',
@@ -21,6 +24,13 @@ class CourseEnrollment extends Model
         'written_score',
         'interview_score',
         'final_score',
+        'pre_test_score',
+        'post_test_score',
+        'practice_score',
+        'attitude_score',
+        'attendance_rate',
+        'final_grade',
+        'competency_status',
         'created_by',
         'muted_until',
         'completed_at',
@@ -38,6 +48,12 @@ class CourseEnrollment extends Model
         'written_score' => 'float',
         'interview_score' => 'float',
         'final_score' => 'float',
+        'pre_test_score' => 'float',
+        'post_test_score' => 'float',
+        'practice_score' => 'float',
+        'attitude_score' => 'float',
+        'attendance_rate' => 'float',
+        'final_grade' => 'float',
     ];
 
     public static function statuses(): array
@@ -118,5 +134,11 @@ class CourseEnrollment extends Model
         $interviewPart = $interview !== null ? $interview * 0.6 : 0;
         $this->final_score = round($writtenPart + $interviewPart, 2);
         $this->save();
+    }
+
+    public function updateLearningOutcome(?CourseClass $class = null): void
+    {
+        $gradebookService = app(\App\Services\GradebookService::class);
+        $gradebookService->updateLearningOutcome($this, $class);
     }
 }

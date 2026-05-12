@@ -6,7 +6,7 @@
         <h4 class="mb-0">Seleksi & Ranking Peserta</h4>
         <small class="text-muted">Hitung skor gabungan, batasi kuota, dan terapkan status lulus/cadangan.</small>
     </div>
-    <a href="{{ route('admin.course-enrollment.index') }}" class="btn btn-outline-secondary btn-sm">Kembali ke daftar</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.index' : 'admin.course-enrollment.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali ke daftar</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -159,7 +159,7 @@
                 </table>
             </div>
 
-            <form action="{{ route('admin.course-enrollment.ranking.apply') }}" method="POST" class="mt-3">
+            <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.ranking.apply' : 'admin.course-enrollment.ranking.apply')) }}" method="POST" class="mt-3">
                 @csrf
                 <input type="hidden" name="class_id" value="{{ $selectedClass->id }}">
                 <input type="hidden" name="quota" value="{{ $quota }}">

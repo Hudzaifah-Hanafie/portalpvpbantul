@@ -7,10 +7,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $session->exists ? 'Edit' : 'Tambah' }} Sesi</h4>
+        <h4 class="mb-0">{{ $session->exists ? 'Ubah' : 'Tambah' }} Sesi</h4>
         <small class="text-muted">Atur jadwal, link live, dan rekaman; gunakan status untuk kontrol publikasi.</small>
     </div>
-    <a href="{{ route('admin.course-session.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.index' : 'admin.course-session.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
@@ -66,7 +66,7 @@
 
     <div class="row g-3 mt-3">
         <div class="col-md-6">
-            <label class="form-label">Link Live</label>
+            <label class="form-label">Tautan Live</label>
             <input type="text" name="meeting_link" class="form-control @error('meeting_link') is-invalid @enderror" value="{{ old('meeting_link', $session->meeting_link) }}" maxlength="255">
             @error('meeting_link') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
@@ -97,7 +97,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $session->exists ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $session->exists ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

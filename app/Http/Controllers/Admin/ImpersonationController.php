@@ -98,6 +98,10 @@ class ImpersonationController extends Controller
             return route('admin.dashboard');
         }
 
+        if ($user->hasAnyRole(['instructor', 'instruktur'])) {
+            return route('instructor.dashboard');
+        }
+
         if ($user->hasRole('participant')) {
             return route('participant.classes');
         }

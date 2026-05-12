@@ -6,7 +6,7 @@
         <h4 class="mb-0">Cetak Kartu Peserta</h4>
         <small class="text-muted">{{ $session->course->title ?? '-' }} • {{ $session->title }}</small>
     </div>
-    <a href="{{ route('admin.course-session.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.index' : 'admin.course-session.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <div class="row row-cols-2 row-cols-md-3 g-3">

@@ -7,10 +7,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $attendance->exists ? 'Edit' : 'Tambah' }} Presensi</h4>
+        <h4 class="mb-0">{{ $attendance->exists ? 'Ubah' : 'Tambah' }} Presensi Peserta</h4>
         <small class="text-muted">Catat status kehadiran peserta per sesi.</small>
     </div>
-    <a href="{{ route('admin.course-attendance.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.index' : 'admin.course-attendance.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
@@ -29,9 +29,9 @@
             @error('course_session_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-6">
-            <label class="form-label">User ID Peserta</label>
+            <label class="form-label">ID Peserta</label>
             <input type="text" name="user_id" class="form-control @error('user_id') is-invalid @enderror" value="{{ old('user_id', $attendance->user_id) }}" required>
-            <small class="text-muted">Masukkan UUID user peserta.</small>
+            <small class="text-muted">Masukkan UUID peserta.</small>
             @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
@@ -65,7 +65,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $attendance->exists ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $attendance->exists ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

@@ -27,7 +27,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.partner.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.partner.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -76,7 +76,7 @@
                         <span class="badge {{ $partner->is_active ? 'bg-success' : 'bg-dark' }}">{{ $partner->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                     </td>
                     <td class="d-flex gap-2">
-                        <a href="{{ route('admin.partner.edit', $partner->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{{ route('admin.partner.edit', $partner->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                         <form action="{{ route('admin.partner.destroy', $partner->id) }}" method="POST" onsubmit="return confirm('Hapus partner ini?')">
                             @csrf
                             @method('DELETE')

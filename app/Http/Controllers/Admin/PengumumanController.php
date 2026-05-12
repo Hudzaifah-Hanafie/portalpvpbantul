@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class PengumumanController extends Controller
 {
@@ -173,7 +174,7 @@ class PengumumanController extends Controller
 
     private function validatePayload(Request $request, bool $isCreate = true): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:160',
             'isi' => 'required|string',
             'file_download' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
@@ -182,6 +183,10 @@ class PengumumanController extends Controller
             'meta_description' => 'nullable|string|max:320',
             'focus_keyword' => 'nullable|string|max:100',
         ]);
+
+        $data['isi'] = HtmlSanitizer::clean($data['isi']);
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Pengumuman $pengumuman = null): void

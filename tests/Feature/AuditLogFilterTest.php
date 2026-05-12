@@ -16,9 +16,10 @@ class AuditLogFilterTest extends TestCase
 
     private function createAuditor(): User
     {
-        $permission = Permission::create(['name' => 'manage-audit', 'label' => 'Audit']);
+        $accessAdmin = Permission::firstOrCreate(['name' => 'access-admin'], ['label' => 'Akses Admin']);
+        $permission = Permission::firstOrCreate(['name' => 'manage-audit'], ['label' => 'Audit']);
         $role = Role::create(['name' => 'auditor', 'label' => 'Auditor']);
-        $role->permissions()->attach($permission->id);
+        $role->permissions()->attach([$accessAdmin->id, $permission->id]);
 
         $user = User::factory()->create();
         $user->syncRoles([$role->id]);

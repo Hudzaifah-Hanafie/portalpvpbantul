@@ -70,7 +70,23 @@ class OrgStructureController extends Controller
         ];
 
         if ($id) {
-            $rules['parent_id'][] = Rule::notIn([$id]);
+            $rules['parent_id'][] = function ($attribute, $value, $fail) use ($id) {
+                $currentId = $value;
+                $visited = [];
+                while ($currentId) {
+                    if ($currentId === $id) {
+                        $fail('Terjadi referensi melingkar (Circular Reference). Node yang dipilih adalah keturunan dari struktur ini.');
+                        return;
+                    }
+                    if (in_array($currentId, $visited)) {
+                        break;
+                    }
+                    $visited[] = $currentId;
+                    
+                    $parent = \App\Models\OrgStructure::find($currentId);
+                    $currentId = $parent ? $parent->parent_id : null;
+                }
+            };
         }
 
         return $request->validate($rules);

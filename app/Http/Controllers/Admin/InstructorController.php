@@ -7,6 +7,7 @@ use App\Models\Instructor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class InstructorController extends Controller
 {
@@ -109,7 +110,7 @@ class InstructorController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'nama' => 'required|string|max:255',
             'keahlian' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -121,6 +122,12 @@ class InstructorController extends Controller
             'foto' => 'nullable|image|max:2048',
             'status' => 'nullable|in:' . implode(',', array_keys(Instructor::statuses())),
         ]);
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Instructor $instructor = null): void

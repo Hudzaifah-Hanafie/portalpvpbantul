@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Talent Pool & CV Book</h4>
+        <h4 class="mb-0">Bank Talenta & Buku CV</h4>
         <small class="text-muted">Profil lulusan/ peserta per kelas, siap dibagikan ke mitra industri/pemerintah.</small>
     </div>
 </div>
@@ -25,13 +25,13 @@
             </div>
             @if($classId)
                 <div class="col-auto">
-                    <a href="{{ route('admin.talent-pool.index') }}" class="btn btn-link">Reset</a>
+                    <a href="{{ route('admin.talent-pool.index') }}" class="btn btn-link">Atur Ulang</a>
                 </div>
             @endif
             @if($classId)
                 <div class="col-auto ms-auto">
                     <a href="{{ route('admin.talent-pool.export', $classId) }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-file-export"></i> Unduh CV Book (CSV)
+                        <i class="fas fa-file-export"></i> Unduh Buku CV (CSV)
                     </a>
                 </div>
             @endif
@@ -50,9 +50,9 @@
                         <th>Kelas</th>
                         <th>Badge / Kompetensi</th>
                         <th>Nilai</th>
-                        <th>Submissions</th>
+                        <th>Pengumpulan</th>
                         <th>Status</th>
-                        <th>Terakhir Update</th>
+                        <th>Terakhir Perbarui</th>
                         <th>Sertifikat</th>
                     </tr>
                 </thead>

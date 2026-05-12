@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseAttendance;
 use App\Models\CourseClass;
 use App\Models\CourseSession;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class CourseAttendanceController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -23,6 +26,10 @@ class CourseAttendanceController extends Controller
         $sessionFilter = request('session_id');
 
         $query = CourseAttendance::with(['session.course', 'user'])->orderBy('checked_at', 'desc');
+        if ($this->isInstructorUser(request()->user())) {
+            $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+            $query->whereHas('session', fn ($q) => $q->whereIn('course_class_id', $classIds));
+        }
 
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
@@ -34,22 +41,32 @@ class CourseAttendanceController extends Controller
         }
 
         $attendances = $query->paginate(25)->withQueryString();
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
-        $sessions = CourseSession::orderBy('start_at')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
+        $sessions = CourseSession::orderBy('start_at')
+            ->when($this->isInstructorUser(request()->user()), function ($q) {
+                $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+                $q->whereIn('course_class_id', $classIds);
+            })
+            ->pluck('title', 'id');
 
         return view('admin.course_attendance.index', compact('attendances', 'statusOptions', 'statusFilter', 'classes', 'classFilter', 'sessions', 'sessionFilter'));
     }
 
     public function create()
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
-        $sessions = CourseSession::orderBy('start_at')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
+        $sessions = CourseSession::orderBy('start_at')
+            ->when($this->isInstructorUser(request()->user()), function ($q) {
+                $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+                $q->whereIn('course_class_id', $classIds);
+            })
+            ->pluck('title', 'id');
 
         return view('admin.course_attendance.form', [
             'attendance' => new CourseAttendance(),
             'classes' => $classes,
             'sessions' => $sessions,
-            'action' => route('admin.course-attendance.store'),
+            'action' => route($this->getRoutePrefix() . 'course-attendance.store'),
             'method' => 'POST',
         ]);
     }
@@ -57,6 +74,10 @@ class CourseAttendanceController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
+        $session = CourseSession::find($data['course_session_id']);
+        if ($session) {
+            $this->ensureInstructorOwnsClassId($request->user(), $session->course_class_id);
+        }
         $data['created_by'] = $request->user()->id;
         $data['recorded_by'] = $request->user()->id;
         $data['recorded_source'] = 'operator';
@@ -71,19 +92,28 @@ class CourseAttendanceController extends Controller
             $attendance
         );
 
-        return redirect()->route('admin.course-attendance.index')->with('success', 'Presensi ditambahkan.');
+        return redirect()->route($this->getRoutePrefix() . 'course-attendance.index')->with('success', 'Presensi ditambahkan.');
     }
 
     public function edit(CourseAttendance $course_attendance)
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
-        $sessions = CourseSession::orderBy('start_at')->pluck('title', 'id');
+        $sessionClassId = $course_attendance->session?->course_class_id;
+        if ($sessionClassId) {
+            $this->ensureInstructorOwnsClassId(request()->user(), $sessionClassId);
+        }
+        $classes = $this->scopedClassOptions(request()->user());
+        $sessions = CourseSession::orderBy('start_at')
+            ->when($this->isInstructorUser(request()->user()), function ($q) {
+                $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+                $q->whereIn('course_class_id', $classIds);
+            })
+            ->pluck('title', 'id');
 
         return view('admin.course_attendance.form', [
             'attendance' => $course_attendance,
             'classes' => $classes,
             'sessions' => $sessions,
-            'action' => route('admin.course-attendance.update', $course_attendance->id),
+            'action' => route($this->getRoutePrefix() . 'course-attendance.update', $course_attendance->id),
             'method' => 'PUT',
         ]);
     }
@@ -91,6 +121,10 @@ class CourseAttendanceController extends Controller
     public function update(Request $request, CourseAttendance $course_attendance)
     {
         $data = $this->validateData($request);
+        $session = CourseSession::find($data['course_session_id']);
+        if ($session) {
+            $this->ensureInstructorOwnsClassId($request->user(), $session->course_class_id);
+        }
         $course_attendance->update($data);
 
         $this->logger->log(
@@ -100,11 +134,15 @@ class CourseAttendanceController extends Controller
             $course_attendance
         );
 
-        return redirect()->route('admin.course-attendance.index')->with('success', 'Presensi diperbarui.');
+        return redirect()->route($this->getRoutePrefix() . 'course-attendance.index')->with('success', 'Presensi diperbarui.');
     }
 
     public function destroy(CourseAttendance $course_attendance)
     {
+        $sessionClassId = $course_attendance->session?->course_class_id;
+        if ($sessionClassId) {
+            $this->ensureInstructorOwnsClassId(request()->user(), $sessionClassId);
+        }
         $this->logger->log(
             request()->user(),
             'course.attendance.deleted',
@@ -112,12 +150,16 @@ class CourseAttendanceController extends Controller
             $course_attendance
         );
         $course_attendance->delete();
-        return redirect()->route('admin.course-attendance.index')->with('success', 'Presensi dihapus.');
+        return redirect()->route($this->getRoutePrefix() . 'course-attendance.index')->with('success', 'Presensi dihapus.');
     }
 
     public function exportCsv(Request $request)
     {
         $query = CourseAttendance::with(['session.course', 'user']);
+        if ($this->isInstructorUser($request->user())) {
+            $classIds = CourseClass::where('instructor_id', $request->user()->id)->pluck('id');
+            $query->whereHas('session', fn ($q) => $q->whereIn('course_class_id', $classIds));
+        }
         if ($request->filled('class_id')) {
             $query->whereHas('session', fn ($q) => $q->where('course_class_id', $request->input('class_id')));
         }
@@ -133,20 +175,22 @@ class CourseAttendanceController extends Controller
         $callback = function () use ($query) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['user_id', 'nama', 'kelas', 'sesi', 'status', 'checked_at', 'reason', 'proof_url']);
-            $query->chunk(200, function ($rows) use ($out) {
-                foreach ($rows as $row) {
-                    fputcsv($out, [
-                        $row->user_id,
-                        $row->user->name ?? '',
-                        $row->session?->course?->title ?? '',
-                        $row->session?->title ?? '',
-                        $row->status,
-                        $row->checked_at,
-                        $row->reason,
-                        $row->proof_url,
-                    ]);
-                }
-            });
+            
+            // Menggunakan cursor() agar iterasi data langsung dilakukan dari driver DB 
+            // tanpa memuat koleksi besar (ribuan array) ke dalam RAM. Memori server akan stabil.
+            foreach ($query->cursor() as $row) {
+                fputcsv($out, [
+                    $row->user_id,
+                    $row->user->name ?? '',
+                    $row->session?->course?->title ?? '',
+                    $row->session?->title ?? '',
+                    $row->status,
+                    $row->checked_at,
+                    $row->reason,
+                    $row->proof_url,
+                ]);
+            }
+            
             fclose($out);
         };
 

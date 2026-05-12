@@ -11,6 +11,7 @@ use App\Models\PublicServiceSetting;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Support\HtmlSanitizer;
 
 class SiteSettingController extends Controller
 {
@@ -180,6 +181,9 @@ class SiteSettingController extends Controller
 
         if (array_key_exists('mail_password', $data) && $data['mail_password'] === '') {
             unset($data['mail_password']);
+        }
+        if (array_key_exists('footer_embed_map', $data) && $data['footer_embed_map']) {
+            $data['footer_embed_map'] = HtmlSanitizer::cleanEmbed($data['footer_embed_map']);
         }
 
         foreach ($data as $key => $value) {

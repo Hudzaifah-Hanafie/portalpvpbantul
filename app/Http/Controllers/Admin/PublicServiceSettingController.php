@@ -7,6 +7,7 @@ use App\Models\PublicServiceSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class PublicServiceSettingController extends Controller
 {
@@ -82,7 +83,7 @@ class PublicServiceSettingController extends Controller
             $data['standard_document_file'] = '/storage/' . $request->file('standard_document_file')->store('pelayanan', 'public');
         }
 
-        $sanitizeRich = fn($value) => $value ? strip_tags($value, '<p><br><strong><em><ul><ol><li><a>') : null;
+        $sanitizeRich = fn($value) => $value ? HtmlSanitizer::clean($value) : null;
         $sanitizePlain = fn($value) => $value ? strip_tags($value) : null;
 
         foreach ([

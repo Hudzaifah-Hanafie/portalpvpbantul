@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="mb-1">Dashboard Tracer Alumni</h3>
+        <h3 class="mb-1">Dasbor Tracer Alumni</h3>
         <p class="text-muted mb-0">Distribusi status pekerjaan dan pendidikan terakhir berdasarkan gender.</p>
     </div>
     <div class="d-flex gap-2">
@@ -15,7 +15,7 @@
     <div class="col-lg-6">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h5 class="fw-bold">Employment Status by Gender</h5>
+                <h5 class="fw-bold">Status Pekerjaan berdasarkan Gender</h5>
                 <small class="text-muted">Proporsi status pekerjaan alumni.</small>
                 <canvas id="statusChart" height="220" class="mt-3"></canvas>
                 <ul class="mt-3 list-unstyled small row row-cols-2 g-2">
@@ -29,7 +29,7 @@
     <div class="col-lg-6">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h5 class="fw-bold">Education Level Distribution by Gender</h5>
+                <h5 class="fw-bold">Distribusi Pendidikan berdasarkan Gender</h5>
                 <small class="text-muted">Perbandingan pendidikan terakhir Laki-laki vs Perempuan.</small>
                 <canvas id="educationChart" height="220" class="mt-3"></canvas>
                 <ul class="mt-3 list-unstyled small row row-cols-2 g-2">

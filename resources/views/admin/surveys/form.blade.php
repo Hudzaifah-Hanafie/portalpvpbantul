@@ -55,7 +55,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $isEdit ? 'Edit Survey' : 'Buat Survey Baru' }}</h4>
+        <h4 class="mb-0">{{ $isEdit ? 'Ubah Survei' : 'Buat Survei Baru' }}</h4>
         <small class="text-muted">Susun pertanyaan fleksibel mirip Google Form dan atur jadwal publikasinya.</small>
     </div>
     <a href="{{ route('admin.surveys.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -78,7 +78,7 @@
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Judul Survey</label>
+                        <label class="form-label fw-semibold">Judul Survei</label>
                         <input type="text" name="title" class="form-control" value="{{ old('title', $survey->title) }}" required>
                     </div>
                     <div class="mb-3">
@@ -165,8 +165,8 @@
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle" style="width:48px;height:48px;background: var(--preview-primary, #2563eb);"></div>
                             <div>
-                                <div class="fw-semibold" id="preview-title">{{ old('title', $survey->title ?? 'Judul Survey') }}</div>
-                                <small class="text-muted">Preview tema</small>
+                                <div class="fw-semibold" id="preview-title">{{ old('title', $survey->title ?? 'Judul Survei') }}</div>
+                                <small class="text-muted">Pratinjau tema</small>
                             </div>
                         </div>
                     </div>
@@ -219,7 +219,7 @@
                         @foreach($survey->collaborators as $collab)
                             <li class="d-flex justify-content-between align-items-center py-1">
                                 <div>
-                                    <strong>{{ $collab->user->email ?? 'User' }}</strong>
+                                    <strong>{{ $collab->user->email ?? 'Pengguna' }}</strong>
                                     <div class="text-muted small">{{ ucfirst($collab->role) }}</div>
                                 </div>
                                 <button type="submit" form="collaborator-remove-{{ $collab->id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus kolaborator?')">Hapus</button>
@@ -252,7 +252,7 @@
                         </div>
                         <div class="d-flex gap-2">
                             <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">Template</button>
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">Templat</button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item template-btn" data-template="kepuasan" href="#">Kepuasan Layanan</a></li>
                                     <li><a class="dropdown-item template-btn" data-template="tracer" href="#">Tracer Alumni</a></li>
@@ -274,7 +274,7 @@
     <input type="hidden" name="questions_payload" id="questions-payload">
     <input type="hidden" name="skip_rules_payload" id="skip-rules-payload">
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $isEdit ? 'Simpan Perubahan' : 'Publikasikan Survey' }}</button>
+        <button class="btn btn-primary px-4">{{ $isEdit ? 'Simpan Perubahan' : 'Publikasikan Survei' }}</button>
     </div>
 </form>
 
@@ -321,7 +321,7 @@
             linear_scale: 'Skala (1-5)',
             date: 'Tanggal',
             time: 'Waktu',
-            file_upload: 'Upload file',
+            file_upload: 'Unggah file',
             grid_single: 'Grid (pilihan tunggal)',
             grid_multiple: 'Grid (checkbox)',
             rating: 'Rating',
@@ -334,9 +334,9 @@
         const sectionList = document.getElementById('section-list');
         const payloadSections = document.getElementById('sections-payload');
         const skipRulesPayload = document.getElementById('skip-rules-payload');
-        const initialQuestions = {!! $initialQuestions->toJson() !!};
-        const initialSections = {!! $initialSections->toJson() !!};
-        const initialSkipRules = {!! $initialSkipRules->toJson() !!};
+        const initialQuestions = @json($initialQuestions);
+        const initialSections = @json($initialSections);
+        const initialSkipRules = @json($initialSkipRules);
         let visibilityRules = {};
         const templates = {
             kepuasan: {

@@ -7,6 +7,7 @@ use App\Models\Benefit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class BenefitController extends Controller
 {
@@ -109,7 +110,7 @@ class BenefitController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'ikon' => 'nullable|string|max:255',
@@ -118,6 +119,12 @@ class BenefitController extends Controller
             'is_active' => 'nullable|boolean',
             'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\Benefit::statuses())),
         ]);
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Benefit $benefit = null): void

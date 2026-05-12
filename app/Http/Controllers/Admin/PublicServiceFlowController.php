@@ -7,6 +7,7 @@ use App\Models\PublicServiceFlow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class PublicServiceFlowController extends Controller
 {
@@ -121,6 +122,12 @@ class PublicServiceFlowController extends Controller
 
         $data['category'] = $data['category'] ?? 'pelayanan';
         $data['is_active'] = $request->boolean('is_active');
+        if (! empty($data['subtitle'])) {
+            $data['subtitle'] = HtmlSanitizer::clean($data['subtitle']);
+        }
+        if (! empty($data['steps'])) {
+            $data['steps'] = HtmlSanitizer::clean($data['steps']);
+        }
 
         return $data;
     }

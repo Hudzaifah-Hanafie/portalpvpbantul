@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h3 class="mb-0">{{ $session->exists ? 'Edit' : 'Tambah' }} Sesi Wawancara</h3>
+        <h3 class="mb-0">{{ $session->exists ? 'Ubah' : 'Tambah' }} Sesi Wawancara</h3>
         <small class="text-muted">Atur jadwal, pewawancara, dan lokasi.</small>
     </div>
     <a href="{{ route('admin.interview-session.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -46,7 +46,7 @@
             </div>
             <div class="col-md-8">
                 <label class="form-label">Lokasi</label>
-                <input type="text" name="location" class="form-control" value="{{ old('location', $session->location) }}" placeholder="Ruang A / Link Zoom" required>
+                <input type="text" name="location" class="form-control" value="{{ old('location', $session->location) }}" placeholder="Ruang A / Tautan Zoom" required>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Kuota per sesi</label>

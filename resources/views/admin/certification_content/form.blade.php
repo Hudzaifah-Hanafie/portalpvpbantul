@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $item->exists ? 'Edit' : 'Tambah' }} Konten Sertifikasi</h3>
+    <h3>{{ $item->exists ? 'Ubah' : 'Tambah' }} Konten Sertifikasi</h3>
     <a href="{{ route('admin.certification-content.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
@@ -61,7 +61,7 @@
                     @error('button_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Link Tombol</label>
+                    <label class="form-label">Tautan Tombol</label>
                     <input type="url" name="button_url" class="form-control @error('button_url') is-invalid @enderror" value="{{ old('button_url', $item->button_url) }}" maxlength="255">
                     @error('button_url') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

@@ -3,38 +3,42 @@
 namespace App\Exports;
 
 use App\Models\Survey;
-use Illuminate\Contracts\Support\Responsable;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use App\Models\SurveyResponse;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 
-class SurveyResponsesExport implements FromCollection, WithHeadings, Responsable
+class SurveyResponsesExport implements FromQuery, WithHeadings, WithMapping
 {
-    public string $fileName;
-
     protected Survey $survey;
 
     public function __construct(Survey $survey)
     {
         $this->survey = $survey;
-        $this->fileName = 'survey-' . $survey->slug . '-responses.xlsx';
+        $this->survey->load('questions');
     }
 
-    public function collection()
+    public function query()
     {
-        $this->survey->load('questions');
+        return SurveyResponse::query()
+            ->where('survey_id', $this->survey->id)
+            ->with(['answers', 'user']);
+    }
 
-        return $this->survey->responses()->with('answers', 'user')->get()->map(function ($response) {
-            $row = [
-                $response->id,
-                $response->submitted_at,
-                optional($response->user)->email ?? 'anon',
-            ];
-            foreach ($this->survey->questions as $question) {
-                $answer = $response->answers->firstWhere('survey_question_id', $question->id);
-                $row[] = $answer?->answer_text ?? $answer?->answer_numeric ?? ($answer?->answer_json ? json_encode($answer->answer_json) : '');
-            }
-            return $row;
-        });
+    public function map($response): array
+    {
+        $row = [
+            $response->id,
+            $response->submitted_at,
+            optional($response->user)->email ?? 'anon',
+        ];
+
+        foreach ($this->survey->questions as $question) {
+            $answer = $response->answers->firstWhere('survey_question_id', $question->id);
+            $row[] = $answer?->answer_text ?? $answer?->answer_numeric ?? ($answer?->answer_json ? json_encode($answer->answer_json) : '');
+        }
+
+        return $row;
     }
 
     public function headings(): array

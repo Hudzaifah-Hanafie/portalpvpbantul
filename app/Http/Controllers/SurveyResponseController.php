@@ -69,31 +69,41 @@ class SurveyResponseController extends Controller
         // binding optional: class_id & instructor_id serta survey_instance_id (untuk survey kelas/instruktur)
         $rules['class_id'] = 'nullable|exists:course_classes,id';
         $rules['instructor_id'] = 'nullable|exists:users,id';
-        $rules['survey_instance_id'] = 'nullable|exists:survey_instances,id';
+        $rules['survey_instance_id'] = [
+            'nullable',
+            Rule::exists('survey_instances', 'id')->where('survey_id', $survey->id),
+        ];
         $validated = $request->validate($rules, $messages);
         $this->verifyRecaptcha($request);
         $answersInput = $validated['responses'] ?? [];
+        $instanceId = $validated['survey_instance_id'] ?? null;
+        $classId = $validated['class_id'] ?? null;
+        $instructorId = $validated['instructor_id'] ?? null;
 
-        DB::transaction(function () use ($survey, $answersInput, $request) {
-            $instanceId = $request->input('survey_instance_id');
-            $classId = $request->input('class_id');
-            $instructorId = $request->input('instructor_id');
+        DB::transaction(function () use ($survey, $answersInput, $request, $instanceId, $classId, $instructorId) {
+            $boundInstanceId = $instanceId;
+            $boundClassId = $classId;
+            $boundInstructorId = $instructorId;
 
             // Jika instance diberikan, tarik binding class/instructor dari instance
-            if ($instanceId) {
-                $instance = \App\Models\SurveyInstance::find($instanceId);
+            if ($boundInstanceId) {
+                $instance = \App\Models\SurveyInstance::whereKey($boundInstanceId)
+                    ->where('survey_id', $survey->id)
+                    ->first();
                 if ($instance && $instance->survey_id === $survey->id) {
-                    $classId = $classId ?: $instance->course_class_id;
-                    $instructorId = $instructorId ?: $instance->instructor_id;
+                    $boundClassId = $boundClassId ?: $instance->course_class_id;
+                    $boundInstructorId = $boundInstructorId ?: $instance->instructor_id;
+                } else {
+                    $boundInstanceId = null;
                 }
             }
 
             $response = SurveyResponse::create([
                 'survey_id' => $survey->id,
-                'survey_instance_id' => $instanceId,
+                'survey_instance_id' => $boundInstanceId,
                 'user_id' => auth()->id(),
-                'course_class_id' => $classId,
-                'instructor_id' => $instructorId,
+                'course_class_id' => $boundClassId,
+                'instructor_id' => $boundInstructorId,
                 'session_id' => $request->session()->getId(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -149,7 +159,7 @@ class SurveyResponseController extends Controller
                         if ($request->hasFile("responses.{$question->id}")) {
                             $file = $request->file("responses.{$question->id}");
                             // simpan di storage privat untuk menghindari akses publik langsung
-                            $path = $file->store('survey_uploads');
+                            $path = $file->store('survey_uploads', 'local');
                             $answerData['file_path'] = $path;
                             $answerData['answer_text'] = $file->getClientOriginalName();
                             $this->scanAttachment($path);
@@ -206,7 +216,7 @@ class SurveyResponseController extends Controller
             'hp_token' => 'nullable|string|size:0',
         ];
         $messages = [];
-        $provider = env('SURVEY_CAPTCHA_PROVIDER', 'recaptcha');
+        $provider = config('survey.captcha_provider', 'recaptcha');
         $hasCaptcha = match ($provider) {
             'hcaptcha' => config('services.hcaptcha.site_key') && config('services.hcaptcha.secret_key'),
             'turnstile' => config('services.turnstile.site_key') && config('services.turnstile.secret_key'),
@@ -282,10 +292,10 @@ class SurveyResponseController extends Controller
                     $rules[$key] = [$requiredRule, 'numeric', "min:$min", "max:$max"];
                     break;
                 case 'file_upload':
-                    $globalMaxMb = (int) env('SURVEY_FILE_MAX_MB', 20);
+                    $globalMaxMb = (int) config('survey.file_max_mb', 20);
                     $maxPerQuestion = (int) ($question->settings['max_size'] ?? $globalMaxMb);
                     $maxSize = min($globalMaxMb, $maxPerQuestion) * 1024;
-                    $mime = $question->settings['mime'] ?? env('SURVEY_FILE_MIMES', 'jpeg,png,pdf,doc,docx');
+                    $mime = $question->settings['mime'] ?? config('survey.file_mimes', 'jpeg,png,pdf,doc,docx');
                     $rules[$key] = [$requiredRule, 'file', "max:$maxSize", "mimes:$mime"];
                     break;
                 case 'date':
@@ -317,18 +327,18 @@ class SurveyResponseController extends Controller
             'user' => optional($response->user)->email,
         ];
 
-        if ($url = env('SURVEY_WEBHOOK_SLACK')) {
+        if ($url = config('survey.webhooks.slack')) {
             Http::post($url, [
                 'text' => "*Survey:* {$survey->title}\n*Response:* {$response->id}\nAt: {$response->submitted_at}",
             ]);
         }
 
-        if ($url = env('SURVEY_WEBHOOK_SHEETS')) {
+        if ($url = config('survey.webhooks.sheets')) {
             Http::post($url, $payload);
         }
 
-        if ($token = env('SURVEY_TELEGRAM_BOT_TOKEN')) {
-            $chatId = env('SURVEY_TELEGRAM_CHAT_ID');
+        if ($token = config('survey.telegram.bot_token')) {
+            $chatId = config('survey.telegram.chat_id');
             if ($chatId) {
                 Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
                     'chat_id' => $chatId,
@@ -356,7 +366,7 @@ class SurveyResponseController extends Controller
 
     private function verifyRecaptcha(Request $request): void
     {
-        $provider = env('SURVEY_CAPTCHA_PROVIDER', 'recaptcha');
+        $provider = config('survey.captcha_provider', 'recaptcha');
         $secret = match ($provider) {
             'hcaptcha' => config('services.hcaptcha.secret_key'),
             'turnstile' => config('services.turnstile.secret_key'),
@@ -390,7 +400,7 @@ class SurveyResponseController extends Controller
 
     private function scanAttachment(string $path): void
     {
-        $webhook = env('SURVEY_ATTACHMENT_SCAN_WEBHOOK');
+        $webhook = config('survey.webhooks.attachment_scan');
         if (! $webhook) {
             return;
         }

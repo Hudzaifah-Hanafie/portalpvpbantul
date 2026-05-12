@@ -146,7 +146,7 @@
                     <h2 class="fw-bold mb-3">{{ $setting->intro_title ?? 'Pelayanan Publik' }}</h2>
                     <p class="text-muted">{{ $setting->intro_description ?? 'Pelayanan publik disiapkan dengan standar kepuasan masyarakat dan service excellence.' }}</p>
                     <div class="mt-4 content">
-                        {!! $setting->intro_content ?? '<p>Tim pelayanan kami siap memfasilitasi informasi pelatihan, pelayanan pengaduan, hingga konsultasi layanan produktivitas.</p>' !!}
+                        {!! \App\Support\HtmlSanitizer::clean($setting->intro_content ?? '<p>Tim pelayanan kami siap memfasilitasi informasi pelatihan, pelayanan pengaduan, hingga konsultasi layanan produktivitas.</p>') !!}
                     </div>
                 </div>
                 <div class="col-lg-5">

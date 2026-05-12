@@ -3,12 +3,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h4 class="mb-0">Jadwal Pelatihan (Preview)</h4>
-        <small class="text-muted">Tampilan template jadwal instansi; klik "Download/Print" untuk PDF.</small>
+        <h4 class="mb-0">Jadwal Pelatihan (Pratinjau)</h4>
+        <small class="text-muted">Tampilan templat jadwal instansi; klik "Unduh/Cetak" untuk PDF.</small>
     </div>
     <div class="d-flex gap-2">
         <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-            <i class="fas fa-file-pdf"></i> Download / Print
+            <i class="fas fa-file-pdf"></i> Unduh / Cetak
         </button>
     </div>
 </div>
@@ -75,7 +75,7 @@
                     <input type="text" class="form-control" placeholder="Cari kode unit / instruktur / label (BREAK, ISOMA, Apel Pagi)…">
                 </div>
                 <div class="toolbar-actions">
-                    <span class="badge bg-light text-dark border d-none d-md-inline-flex">Template</span>
+                    <span class="badge bg-light text-dark border d-none d-md-inline-flex">Templat</span>
                     <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-1"></i> Cetak</button>
                     <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-download me-1"></i> Ekspor</button>
                     <button class="btn btn-primary btn-sm">Simpan</button>
@@ -258,7 +258,7 @@
                 </div>
             </div>
 
-            <div class="footer-note text-center text-muted small mt-3">© Template UI Jadwal Pelatihan — Sesuaikan konten sesuai format dokumen internal.</div>
+            <div class="footer-note text-center text-muted small mt-3">© Templat UI Jadwal Pelatihan — Sesuaikan konten sesuai format dokumen internal.</div>
         </div>
     </div>
 </div>

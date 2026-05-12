@@ -6,6 +6,7 @@ use App\Traits\HasUuid;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Program extends Model
 {
@@ -43,8 +44,18 @@ class Program extends Model
         ];
     }
 
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'published');
+    }
+
     public function trainingSchedules(): HasMany
     {
         return $this->hasMany(TrainingSchedule::class);
+    }
+
+    public function kejuruanModules(): HasMany
+    {
+        return $this->hasMany(KejuruanModule::class);
     }
 }

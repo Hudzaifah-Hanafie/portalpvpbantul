@@ -3,7 +3,7 @@
 @section('content')
 <div class="card shadow-sm border-0 col-md-10 mx-auto">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Edit Halaman: {{ $profile->judul }}</h5>
+        <h5 class="mb-0">Ubah Halaman: {{ $profile->judul }}</h5>
     </div>
     <div class="card-body">
         @php

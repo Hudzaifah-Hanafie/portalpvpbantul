@@ -23,28 +23,11 @@
             <div class="text-start mt-4 pt-4 border-top">
                 <h4 class="fw-bold mb-3 text-secondary">Struktur Organisasi</h4>
                 @if($structures->isEmpty())
-                    <div class="alert alert-info">Belum ada data struktur organisasi.</div>
+                    <div class="alert alert-info border-0 shadow-sm"><i class="fas fa-info-circle me-2"></i> Belum ada data struktur organisasi.</div>
                 @else
-                    @php
-                        $renderTree = function($nodes) use (&$renderTree) {
-                            echo '<ul class="list-unstyled ps-3 border-start">';
-                            foreach ($nodes as $node) {
-                                ?>
-                                <li class="mb-3">
-                                    <div class="fw-bold">{{ e($node->nama) }}</div>
-                                    @if($node->jabatan)
-                                        <div class="text-muted small">{{ e($node->jabatan) }}</div>
-                                    @endif
-                                    @if($node->children->count())
-                                        {!! $renderTree($node->children) !!}
-                                    @endif
-                                </li>
-                                <?php
-                            }
-                            echo '</ul>';
-                        };
-                    @endphp
-                    {!! $renderTree($structures) !!}
+                    <div class="p-3 bg-light rounded-4 shadow-sm">
+                        @include('profil.partials.struktur_node', ['nodes' => $structures])
+                    </div>
                 @endif
             </div>
 
@@ -52,7 +35,7 @@
             <div class="text-start mt-4 pt-4 border-top">
                 <h4 class="fw-bold mb-3 text-secondary">Keterangan Detail:</h4>
                 <div class="content-body table-responsive">
-                    {!! $data->konten !!}
+                    {!! \App\Support\HtmlSanitizer::clean($data->konten) !!}
                 </div>
             </div>
             @endif

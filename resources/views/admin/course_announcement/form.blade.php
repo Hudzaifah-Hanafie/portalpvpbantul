@@ -7,10 +7,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $announcement->exists ? 'Edit' : 'Tambah' }} Pengumuman</h4>
+        <h4 class="mb-0">{{ $announcement->exists ? 'Ubah' : 'Tambah' }} Pengumuman</h4>
         <small class="text-muted">Pengumuman ditampilkan kepada peserta kelas.</small>
     </div>
-    <a href="{{ route('admin.course-announcement.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-announcement.index' : 'admin.course-announcement.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
@@ -59,7 +59,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $announcement->exists ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $announcement->exists ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

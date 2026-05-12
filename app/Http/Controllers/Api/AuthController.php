@@ -28,7 +28,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Kredensial salah'], 401);
         }
 
-        $token = $user->generateApiToken();
+        $token = $user->createToken('api')->plainTextToken;
 
         $this->logger->log($user, 'api.login', 'Autentikasi API berhasil');
 
@@ -47,7 +47,10 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $user?->revokeApiToken();
+        $token = $user?->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
 
         $this->logger->log($user, 'api.logout', 'Logout API');
 

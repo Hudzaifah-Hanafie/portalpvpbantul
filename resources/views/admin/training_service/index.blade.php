@@ -27,7 +27,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.training-service.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.training-service.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -60,7 +60,7 @@
                         <span class="badge {{ $service->is_active ? 'bg-success' : 'bg-dark' }}">{{ $service->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                     </td>
                     <td class="d-flex gap-2">
-                        <a href="{{ route('admin.training-service.edit', $service->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{{ route('admin.training-service.edit', $service->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                         <form action="{{ route('admin.training-service.destroy', $service->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?')">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Hapus</button>

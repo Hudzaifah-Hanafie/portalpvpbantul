@@ -3,7 +3,7 @@
 @section('content')
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Edit Pengumuman</h5>
+        <h5 class="mb-0">Ubah Pengumuman</h5>
     </div>
     <div class="card-body">
         @if ($errors->any())
@@ -92,7 +92,7 @@
 
             @include('admin.partials.seo-tools', ['model' => $pengumuman, 'baseUrl' => url('/pengumuman'), 'excerptField' => '[name=isi]'])
 
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Perbarui</button>
             <a href="{{ route('admin.pengumuman.index') }}" class="btn btn-secondary">Batal</a>
         </form>
     </div>

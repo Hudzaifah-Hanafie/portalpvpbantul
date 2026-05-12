@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Storage;
+use App\Support\HtmlSanitizer;
 
 class ProfileController extends Controller
 {
@@ -66,11 +67,13 @@ class ProfileController extends Controller
         $profile->judul = $request->judul;
         if ($isVisiMisi) {
             $profile->konten = json_encode([
-                'visi' => strip_tags($request->visi_text, '<p><br><strong><em><ul><ol><li>'),
-                'misi' => strip_tags($request->misi_text, '<p><br><strong><em><ul><ol><li>'),
+                'visi' => HtmlSanitizer::clean($request->visi_text),
+                'misi' => HtmlSanitizer::clean($request->misi_text),
             ]);
         } else {
-            $profile->konten = strip_tags($request->konten, '<p><br><strong><em><ul><ol><li><a>');
+            $profile->konten = $profile->key === 'profil_denah'
+                ? HtmlSanitizer::cleanEmbed($request->konten)
+                : HtmlSanitizer::clean($request->konten);
         }
         $profile->save();
 

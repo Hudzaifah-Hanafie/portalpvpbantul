@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Dashboard Operasional</h4>
+        <h4 class="mb-0">Dasbor Operasional</h4>
         <small class="text-muted">SLA grading & presensi hari ini.</small>
     </div>
 </div>

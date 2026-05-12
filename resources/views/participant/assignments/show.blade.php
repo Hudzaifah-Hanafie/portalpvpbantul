@@ -1,15 +1,24 @@
 @extends('layouts.participant')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 fade-up">
     <div>
-        <h4 class="mb-0">{{ $assignment->title }}</h4>
-        <small class="text-muted">{{ $assignment->course->title ?? '-' }} • {{ strtoupper($assignment->type) }}</small>
+        <h4 class="mb-1 section-title">{{ $assignment->title }}</h4>
+        <div class="section-subtitle">
+            {{ $assignment->course->title ?? '-' }} • {{ strtoupper($assignment->type) }}
+            @if($assignment->assessment_type === 'module_quiz')
+                • Quiz Akhir Bab
+            @elseif($assignment->assessment_type === 'final_exam')
+                • Ujian Final
+            @elseif($assignment->assessment_type === 'final_project')
+                • Proyek Akhir
+            @endif
+        </div>
     </div>
-    <a href="{{ route('participant.assignments') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route('participant.assignments') }}" class="btn btn-outline-light border-0 shadow-sm bg-white text-dark btn-sm">Kembali</a>
 </div>
 
-<div class="card shadow-sm border-0 mb-3">
+<div class="card stat-card card-hover mb-3">
     <div class="card-body">
         <div class="mb-2">
             <strong>Due:</strong> {{ $assignment->due_at ? $assignment->due_at->format('d M Y H:i') : '-' }}
@@ -20,10 +29,10 @@
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
+<div class="card stat-card card-hover">
     <div class="card-body">
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-modern">{{ session('success') }}</div>
         @endif
         @if($assignment->type === 'quiz')
             <h5 class="mb-3">Kerjakan Quiz</h5>
@@ -40,9 +49,9 @@
                 @endif
             </div>
             @if($quizMaxAttempts && ($quizAttemptsLeft ?? 0) <= 0)
-                <div class="alert alert-secondary">Batas percobaan telah habis.</div>
+                <div class="alert alert-secondary alert-modern">Batas percobaan telah habis.</div>
             @elseif($submission)
-                <div class="alert alert-secondary">Anda sudah mengerjakan quiz ini.</div>
+                <div class="alert alert-secondary alert-modern">Anda sudah mengerjakan quiz ini.</div>
             @else
                 <form action="{{ route('participant.assignments.submit', $assignment) }}" method="POST" class="row g-4" id="quizForm">
                     @csrf
@@ -55,7 +64,7 @@
                     @endif
                     @if($assignment->exam_start_at || $assignment->exam_end_at)
                         <div class="col-12">
-                            <div class="alert alert-info py-2 px-3 small mb-0">
+                            <div class="alert alert-info alert-modern py-2 px-3 small mb-0">
                                 Waktu ujian: {{ $assignment->exam_start_at?->format('d M Y H:i') ?? '-' }} s/d {{ $assignment->exam_end_at?->format('d M Y H:i') ?? '-' }}
                             </div>
                         </div>
@@ -72,7 +81,7 @@
                         </div>
                     @endforeach
                     <div class="text-end">
-                        <button class="btn btn-primary px-4">Kirim Jawaban</button>
+                        <button class="btn btn-primary lms-cta">Kirim Jawaban</button>
                     </div>
                 </form>
             @endif
@@ -97,7 +106,7 @@
                     @error('file_upload') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="text-end">
-                    <button class="btn btn-primary px-4">Kirim</button>
+                    <button class="btn btn-primary lms-cta">Kirim</button>
                 </div>
             </form>
         @endif

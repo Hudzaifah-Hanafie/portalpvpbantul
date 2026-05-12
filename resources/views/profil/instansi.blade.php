@@ -77,7 +77,7 @@
             <div class="col-lg-7">
                 <h3 class="fw-bold mb-3">{{ $profilInstansi->judul ?? 'Profil Satpel PVP Bantul' }}</h3>
                 <div class="text-muted" style="line-height:1.7;">
-                    {!! $profilInstansi->konten !!}
+                    {!! \App\Support\HtmlSanitizer::clean($profilInstansi->konten) !!}
                 </div>
             </div>
         </div>
@@ -92,7 +92,7 @@
                 <span class="badge bg-primary-subtle text-primary fw-semibold mb-2">Sejarah PVP Bantul</span>
                 <h3 class="fw-bold mb-3">{{ $sejarah->judul ?? 'Sejarah Satpel PVP Bantul' }}</h3>
                 <div class="text-muted" style="line-height:1.8;">
-                    {!! $sejarah->konten !!}
+                    {!! \App\Support\HtmlSanitizer::clean($sejarah->konten) !!}
                 </div>
             </div>
             <div class="col-lg-6">
@@ -111,7 +111,7 @@
         <div class="row g-4">
             <div class="col-lg-6">
                 <h4 class="fw-bold mb-3">Selayang Pandang</h4>
-                <div class="text-muted">{!! $selayang->konten !!}</div>
+                <div class="text-muted">{!! \App\Support\HtmlSanitizer::clean($selayang->konten) !!}</div>
             </div>
             <div class="col-lg-6">
                 <div class="rounded-4 overflow-hidden shadow-sm">
@@ -147,7 +147,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <h5 class="fw-semibold mb-3">Visi</h5>
-                        <div class="text-muted">{!! $visiData['visi'] ?? $visiMisi->konten !!}</div>
+                        <div class="text-muted">{!! \App\Support\HtmlSanitizer::clean($visiData['visi'] ?? $visiMisi->konten) !!}</div>
                     </div>
                 </div>
             </div>
@@ -155,7 +155,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <h5 class="fw-semibold mb-3">Misi</h5>
-                        <div class="text-muted">{!! $visiData['misi'] ?? $visiMisi->konten !!}</div>
+                        <div class="text-muted">{!! \App\Support\HtmlSanitizer::clean($visiData['misi'] ?? $visiMisi->konten) !!}</div>
                     </div>
                 </div>
             </div>
@@ -168,41 +168,18 @@
     <div class="container">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-primary">{{ $strukturProfile->judul ?? 'Struktur Organisasi' }}</h3>
-            <p class="text-muted mb-0">{!! $strukturProfile->konten ?? 'Mewujudkan tata kelola Satpel PVP Bantul yang profesional & kolaboratif.' !!}</p>
+            <p class="text-muted mb-0">{!! \App\Support\HtmlSanitizer::clean($strukturProfile->konten ?? 'Mewujudkan tata kelola Satpel PVP Bantul yang profesional & kolaboratif.') !!}</p>
         </div>
         @if($strukturProfile?->gambar)
             <div class="text-center mb-4">
                 <img src="{{ asset($strukturProfile->gambar) }}" class="img-fluid rounded shadow-sm" alt="{{ $strukturProfile->judul }}" style="max-height:400px;object-fit:cover;">
             </div>
         @endif
-        @php
-            $renderTree = function($nodes) use (&$renderTree) {
-                if ($nodes->isEmpty()) {
-                    return '';
-                }
-                $html = '<ul class="list-unstyled ps-4">';
-                foreach ($nodes as $node) {
-                    $html .= '<li class="mb-3">';
-                    $html .= '<div class="fw-semibold">'.e($node->nama).'</div>';
-                    if ($node->jabatan) {
-                        $html .= '<div class="text-muted small">'.e($node->jabatan).'</div>';
-                    }
-                    if ($node->children->count()) {
-                        $html .= $renderTree($node->children);
-                    }
-                    $html .= '</li>';
-                }
-                $html .= '</ul>';
-                return $html;
-            };
-        @endphp
         @if($structures->isEmpty())
-            <div class="alert alert-info text-center">Belum ada data struktur organisasi.</div>
+            <div class="alert alert-info border-0 shadow-sm"><i class="fas fa-info-circle me-2"></i> Belum ada data struktur organisasi.</div>
         @else
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    {!! $renderTree($structures) !!}
-                </div>
+            <div class="p-3 bg-light rounded-4 shadow-sm">
+                @include('profil.partials.struktur_node', ['nodes' => $structures])
             </div>
         @endif
     </div>
@@ -223,9 +200,9 @@
                 @if($denahEmbed)
                     <div class="map-embed">
                         @if(\Illuminate\Support\Str::contains($denahEmbed, '<iframe'))
-                            {!! $denahEmbed !!}
+                            {!! \App\Support\HtmlSanitizer::cleanEmbed($denahEmbed) !!}
                         @else
-                            <iframe src="{{ $denahEmbed }}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            {!! \App\Support\HtmlSanitizer::cleanEmbed('<iframe src="' . e($denahEmbed) . '" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>') !!}
                         @endif
                     </div>
                 @elseif($denah->gambar)

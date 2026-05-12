@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Productivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Support\HtmlSanitizer;
 
 class ProductivityController extends Controller
 {
@@ -66,12 +67,18 @@ class ProductivityController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'urutan' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|max:2048',
         ]);
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+
+        return $data;
     }
 }

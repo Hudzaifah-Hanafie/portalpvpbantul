@@ -10,7 +10,7 @@
         <h4 class="mb-0">Jadwal & Sesi</h4>
         <small class="text-muted">Kelola jadwal, link live, dan rekaman dengan kontrol publikasi.</small>
     </div>
-    <a href="{{ route('admin.course-session.create') }}" class="btn btn-primary btn-sm">Tambah Sesi</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.create' : 'admin.course-session.create')) }}" class="btn btn-primary btn-sm">Tambah Sesi</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -39,7 +39,7 @@
             </div>
             @if(request('status') || request('class_id'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-session.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.index' : 'admin.course-session.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -92,12 +92,12 @@
                                 @endif
                             </td>
                             <td class="text-end">
-                    <a href="{{ route('admin.course-session.show', $session->id) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
-                    <a href="{{ route('admin.course-session.edit', $session->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.show' : 'admin.course-session.show'), $session->id) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.edit' : 'admin.course-session.edit'), $session->id) }}" class="btn btn-sm btn-warning">Ubah</a>
                     @if($session->attendance_code)
-                        <a href="{{ route('admin.course-session.qr', $session->id) }}" class="btn btn-sm btn-outline-primary">QR Presensi</a>
+                        <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.qr' : 'admin.course-session.qr'), $session->id) }}" class="btn btn-sm btn-outline-primary">QR Presensi</a>
                     @endif
-                    <form action="{{ route('admin.course-session.destroy', $session->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus sesi ini?')">
+                    <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.destroy' : 'admin.course-session.destroy'), $session->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus sesi ini?')">
                         @csrf
                         @method('DELETE')
                         <button class="btn btn-sm btn-danger">Hapus</button>

@@ -7,6 +7,7 @@ use App\Models\FaqCategory;
 use App\Models\FaqItem;
 use Illuminate\Http\Request;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class FaqItemController extends Controller
 {
@@ -99,6 +100,9 @@ class FaqItemController extends Controller
 
         $data['urutan'] = $data['urutan'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
+        if (! empty($data['answer'])) {
+            $data['answer'] = HtmlSanitizer::clean($data['answer']);
+        }
 
         return $data;
     }

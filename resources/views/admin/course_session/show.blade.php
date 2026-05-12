@@ -12,10 +12,10 @@
     </div>
     <div class="d-flex gap-2">
         @if($session->attendance_code)
-            <a href="{{ route('admin.course-session.qr', $session->id) }}" class="btn btn-outline-primary btn-sm">QR Presensi</a>
-            <a href="{{ route('admin.course-session.cards', $session->id) }}" class="btn btn-outline-secondary btn-sm">Cetak Kartu Peserta</a>
+            <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.qr' : 'admin.course-session.qr'), $session->id) }}" class="btn btn-outline-primary btn-sm">QR Presensi</a>
+            <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.cards' : 'admin.course-session.cards'), $session->id) }}" class="btn btn-outline-secondary btn-sm">Cetak Kartu Peserta</a>
         @endif
-        <a href="{{ route('admin.course-session.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-session.index' : 'admin.course-session.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>
 </div>
 
@@ -45,11 +45,11 @@
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h6 class="fw-semibold mb-2">Catat Hadir (Operator)</h6>
-                <form action="{{ route('admin.course-attendance.store') }}" method="POST" class="row g-2">
+                <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.store' : 'admin.course-attendance.store')) }}" method="POST" class="row g-2">
                     @csrf
                     <input type="hidden" name="course_session_id" value="{{ $session->id }}">
                     <div class="col-md-6">
-                        <input type="text" name="user_id" class="form-control form-control-sm @error('user_id') is-invalid @enderror" placeholder="User ID peserta" required>
+                        <input type="text" name="user_id" class="form-control form-control-sm @error('user_id') is-invalid @enderror" placeholder="ID peserta" required>
                         @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-3">

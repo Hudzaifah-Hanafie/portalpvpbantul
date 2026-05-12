@@ -8,10 +8,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $enrollment->exists ? 'Edit' : 'Tambah' }} Enrollment</h4>
+        <h4 class="mb-0">{{ $enrollment->exists ? 'Ubah' : 'Tambah' }} Pendaftaran</h4>
         <small class="text-muted">Daftarkan peserta ke kelas yang dipilih.</small>
     </div>
-    <a href="{{ route('admin.course-enrollment.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-enrollment.index' : 'admin.course-enrollment.index')) }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
 </div>
 
 <form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
@@ -77,8 +77,43 @@
         @error('muted_until') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
+    <div class="border-top pt-3 mt-4">
+        <h6 class="mb-2">Evaluasi Pembelajaran</h6>
+        <div class="small text-muted mb-3">Nilai dihitung otomatis dari tugas, quiz, presensi, dan rubrik. Input manual disembunyikan.</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Nilai Pre-Test</label>
+                <input type="text" class="form-control" value="{{ $enrollment->pre_test_score !== null ? number_format($enrollment->pre_test_score, 2) : '-' }}" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Nilai Post-Test</label>
+                <input type="text" class="form-control" value="{{ $enrollment->post_test_score !== null ? number_format($enrollment->post_test_score, 2) : '-' }}" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Nilai Praktik/Unjuk Kerja</label>
+                <input type="text" class="form-control" value="{{ $enrollment->practice_score !== null ? number_format($enrollment->practice_score, 2) : '-' }}" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Nilai Sikap/Etika</label>
+                <input type="text" class="form-control" value="{{ $enrollment->attitude_score !== null ? number_format($enrollment->attitude_score, 2) : '-' }}" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Kehadiran Tercatat</label>
+                <input type="text" class="form-control" value="{{ $enrollment->attendance_rate !== null ? $enrollment->attendance_rate.'%' : '-' }}" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nilai Akhir (NA)</label>
+                <input type="text" class="form-control" value="{{ $enrollment->final_grade !== null ? number_format($enrollment->final_grade, 2) : '-' }}" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Predikat</label>
+                <input type="text" class="form-control" value="{{ $enrollment->competency_status ? strtoupper($enrollment->competency_status) : '-' }}" disabled>
+            </div>
+        </div>
+    </div>
+
     <div class="text-end mt-3">
-        <button class="btn btn-primary px-4">{{ $enrollment->exists ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $enrollment->exists ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

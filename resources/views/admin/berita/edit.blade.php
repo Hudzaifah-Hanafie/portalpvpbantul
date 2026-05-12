@@ -3,7 +3,7 @@
 @section('content')
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Edit Berita</h5>
+        <h5 class="mb-0">Ubah Berita</h5>
     </div>
     <div class="card-body">
         @if ($errors->any())
@@ -117,7 +117,7 @@
 
             @include('admin.partials.seo-tools', ['model' => $berita, 'baseUrl' => url('/berita')])
 
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Berita</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Perbarui Berita</button>
             <a href="{{ route('admin.berita.index') }}" class="btn btn-secondary">Batal</a>
         </form>
     </div>

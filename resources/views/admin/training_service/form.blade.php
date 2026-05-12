@@ -3,7 +3,7 @@
 @section('content')
 <div class="card shadow-sm border-0 col-lg-10">
     <div class="card-header bg-white">
-        <h5 class="mb-0">{{ $service->exists ? 'Edit' : 'Tambah' }} Layanan Pelatihan</h5>
+        <h5 class="mb-0">{{ $service->exists ? 'Ubah' : 'Tambah' }} Layanan Pelatihan</h5>
     </div>
     <div class="card-body">
         <form id="training-service-form" action="{{ $action }}" method="POST" enctype="multipart/form-data">
@@ -23,8 +23,8 @@
                     <button type="button" class="btn btn-sm btn-light" data-editor-action="insertOrderedList"><i class="fas fa-list-ol"></i></button>
                     <button type="button" class="btn btn-sm btn-light" data-editor-action="createLink"><i class="fas fa-link"></i></button>
                 </div>
-                <div class="wys-editor form-control" contenteditable="true" data-editor-target="#deskripsi-input">{!! old('deskripsi', $service->deskripsi) !!}</div>
-                <textarea id="deskripsi-input" name="deskripsi" class="d-none">{{ old('deskripsi', $service->deskripsi) }}</textarea>
+                <div class="wys-editor form-control" contenteditable="true" data-editor-target="#deskripsi-input">{!! \App\Support\HtmlSanitizer::clean(old('deskripsi', $service->deskripsi)) !!}</div>
+                <textarea id="deskripsi-input" name="deskripsi" class="d-none">{{ \App\Support\HtmlSanitizer::clean(old('deskripsi', $service->deskripsi)) }}</textarea>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Fasilitas (boleh HTML / list)</label>
@@ -36,8 +36,8 @@
                     <button type="button" class="btn btn-sm btn-light" data-editor-action="insertOrderedList"><i class="fas fa-list-ol"></i></button>
                     <button type="button" class="btn btn-sm btn-light" data-editor-action="createLink"><i class="fas fa-link"></i></button>
                 </div>
-                <div class="wys-editor form-control" contenteditable="true" data-editor-target="#fasilitas-input">{!! old('fasilitas', $service->fasilitas) !!}</div>
-                <textarea id="fasilitas-input" name="fasilitas" class="d-none">{{ old('fasilitas', $service->fasilitas) }}</textarea>
+                <div class="wys-editor form-control" contenteditable="true" data-editor-target="#fasilitas-input">{!! \App\Support\HtmlSanitizer::clean(old('fasilitas', $service->fasilitas)) !!}</div>
+                <textarea id="fasilitas-input" name="fasilitas" class="d-none">{{ \App\Support\HtmlSanitizer::clean(old('fasilitas', $service->fasilitas)) }}</textarea>
                 <small class="text-muted">Gunakan toolbar untuk format dasar (bold, italic, daftar, tautan).</small>
             </div>
             <div class="mb-3">
@@ -150,7 +150,7 @@
                     sel.addRange(lastSelection);
                 }
                 document.execCommand(action, false, value);
-                // Update hidden textarea after command
+                // Perbarui hidden textarea after command
                 editors.forEach(editor => {
                     const target = document.querySelector(editor.dataset.editorTarget);
                     if (target) {

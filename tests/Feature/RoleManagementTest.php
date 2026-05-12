@@ -14,9 +14,10 @@ class RoleManagementTest extends TestCase
 
     private function createManagerUser(): User
     {
-        $manageAccess = Permission::create(['name' => 'manage-access', 'label' => 'Kelola Role']);
+        $accessAdmin = Permission::firstOrCreate(['name' => 'access-admin'], ['label' => 'Akses Admin']);
+        $manageAccess = Permission::firstOrCreate(['name' => 'manage-access'], ['label' => 'Kelola Role']);
         $role = Role::create(['name' => 'access-manager', 'label' => 'Access Manager']);
-        $role->permissions()->attach($manageAccess->id);
+        $role->permissions()->attach([$accessAdmin->id, $manageAccess->id]);
 
         $user = User::factory()->create();
         $user->syncRoles([$role->id]);

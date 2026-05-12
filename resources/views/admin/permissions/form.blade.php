@@ -14,7 +14,7 @@
             @endif
 
             <div class="col-md-4">
-                <label class="form-label">Nama Permission</label>
+                <label class="form-label">Nama Izin Akses</label>
                 <input type="text" name="name" class="form-control" value="{{ old('name', $permission->name ?? '') }}" required>
                 @error('name') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
@@ -29,7 +29,7 @@
                 @error('label') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label">Module</label>
+                <label class="form-label">Modul</label>
                 <input type="text" name="module" class="form-control" value="{{ old('module', $permission->module ?? '') }}" list="permission-module-options">
                 <datalist id="permission-module-options">
                     @foreach($moduleOptions as $option)
@@ -40,7 +40,7 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label">Role terkait</label>
+                <label class="form-label">Peran terkait</label>
                 <div class="row">
                     @php
                         $selectedRoles = collect(old('roles', ($permission->exists ?? false) ? $permission->roles->pluck('id')->toArray() : []));

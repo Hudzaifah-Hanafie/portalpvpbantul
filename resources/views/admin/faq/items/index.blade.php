@@ -33,7 +33,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.faq-item.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.faq-item.index') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </div>
@@ -73,7 +73,7 @@
                             <span class="badge {{ $item->is_active ? 'bg-success' : 'bg-dark' }}">{{ $item->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.faq-item.edit', $item) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{{ route('admin.faq-item.edit', $item) }}" class="btn btn-sm btn-warning">Ubah</a>
                             <form action="{{ route('admin.faq-item.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus FAQ ini?')">
                                 @csrf
                                 @method('DELETE')

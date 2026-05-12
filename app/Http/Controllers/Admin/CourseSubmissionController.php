@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseAssignment;
 use App\Models\CourseClass;
+use App\Models\CourseEnrollment;
 use App\Models\CourseSubmission;
 use App\Models\CourseSubmissionGrade;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use App\Models\TrainingSchedule;
 
 class CourseSubmissionController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -24,6 +30,10 @@ class CourseSubmissionController extends Controller
         $classFilter = request('class_id');
 
         $query = CourseSubmission::with(['assignment.course', 'user'])->orderBy('submitted_at', 'desc');
+        if ($this->isInstructorUser(request()->user())) {
+            $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+            $query->whereHas('assignment', fn ($q) => $q->whereIn('course_class_id', $classIds));
+        }
 
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
@@ -34,16 +44,27 @@ class CourseSubmissionController extends Controller
             $query->whereHas('assignment', fn ($q) => $q->where('course_class_id', $classFilter));
         }
 
-        $submissions = $query->paginate(25)->withQueryString();
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
-        $assignments = CourseAssignment::orderBy('title')->pluck('title', 'id');
+        $submissions = $query->get();
+        $classes = $this->scopedClassOptions(request()->user());
+        $assignments = CourseAssignment::orderBy('title')
+            ->when($this->isInstructorUser(request()->user()), function ($q) {
+                $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+                $q->whereIn('course_class_id', $classIds);
+            })
+            ->pluck('title', 'id');
 
-        return view('admin.course_submission.index', compact('submissions', 'statusOptions', 'statusFilter', 'classes', 'classFilter', 'assignments', 'assignmentFilter'));
+        $submissionGroups = $this->buildSubmissionGroups($submissions);
+
+        return view('admin.course_submission.index', compact('submissions', 'submissionGroups', 'statusOptions', 'statusFilter', 'classes', 'classFilter', 'assignments', 'assignmentFilter'));
     }
 
     public function exportCsv(Request $request)
     {
         $query = CourseSubmission::with(['assignment.course', 'user']);
+        if ($this->isInstructorUser($request->user())) {
+            $classIds = CourseClass::where('instructor_id', $request->user()->id)->pluck('id');
+            $query->whereHas('assignment', fn ($q) => $q->whereIn('course_class_id', $classIds));
+        }
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
@@ -58,22 +79,23 @@ class CourseSubmissionController extends Controller
         $callback = function () use ($query) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['user_id', 'nama', 'kelas', 'tugas', 'status', 'total_score', 'submitted_at', 'graded_at', 'late', 'late_minutes']);
-            $query->chunk(200, function ($rows) use ($out) {
-                foreach ($rows as $row) {
-                    fputcsv($out, [
-                        $row->user_id,
-                        $row->user->name ?? '',
-                        $row->assignment?->course?->title ?? '',
-                        $row->assignment?->title ?? '',
-                        $row->status,
-                        $row->total_score,
-                        $row->submitted_at,
-                        $row->graded_at,
-                        $row->late ? 'yes' : 'no',
-                        $row->late_minutes,
-                    ]);
-                }
-            });
+            
+            // Penggunaan cursor() untuk mencegah Out Of Memory Load saat ratusan ribu data.
+            foreach ($query->cursor() as $row) {
+                fputcsv($out, [
+                    $row->user_id,
+                    $row->user->name ?? '',
+                    $row->assignment?->course?->title ?? '',
+                    $row->assignment?->title ?? '',
+                    $row->status,
+                    $row->total_score,
+                    $row->submitted_at,
+                    $row->graded_at,
+                    $row->late ? 'yes' : 'no',
+                    $row->late_minutes,
+                ]);
+            }
+            
             fclose($out);
         };
 
@@ -84,11 +106,14 @@ class CourseSubmissionController extends Controller
     {
         $statusOptions = CourseSubmission::statuses();
         $course_submission->load('assignment');
+        if ($course_submission->assignment) {
+            $this->ensureInstructorOwnsClassId(request()->user(), $course_submission->assignment->course_class_id);
+        }
         $course_submission->load('grades.grader');
         return view('admin.course_submission.form', [
             'submission' => $course_submission,
             'statusOptions' => $statusOptions,
-            'action' => route('admin.course-submission.update', $course_submission->id),
+            'action' => route($this->getRoutePrefix() . 'course-submission.update', $course_submission->id),
             'method' => 'PUT',
         ]);
     }
@@ -97,6 +122,9 @@ class CourseSubmissionController extends Controller
     {
         $course_submission->load('assignment');
         $assignment = $course_submission->assignment;
+        if ($assignment) {
+            $this->ensureInstructorOwnsClassId($request->user(), $assignment->course_class_id);
+        }
         $hasRubric = $assignment && $assignment->rubric;
 
         $data = $request->validate([
@@ -205,11 +233,17 @@ class CourseSubmissionController extends Controller
             );
         }
 
-        return redirect()->route('admin.course-submission.index')->with('success', 'Submission diperbarui.');
+        $this->syncEnrollmentOutcome($course_submission);
+
+        return redirect()->route($this->getRoutePrefix() . 'course-submission.index')->with('success', 'Submission diperbarui.');
     }
 
     public function destroy(CourseSubmission $course_submission)
     {
+        $assignment = $course_submission->assignment;
+        if ($assignment) {
+            $this->ensureInstructorOwnsClassId(request()->user(), $assignment->course_class_id);
+        }
         $this->logger->log(
             request()->user(),
             'course.submission.deleted',
@@ -218,6 +252,49 @@ class CourseSubmissionController extends Controller
         );
         $course_submission->delete();
 
-        return redirect()->route('admin.course-submission.index')->with('success', 'Submission dihapus.');
+        return redirect()->route($this->getRoutePrefix() . 'course-submission.index')->with('success', 'Submission dihapus.');
+    }
+
+    private function syncEnrollmentOutcome(CourseSubmission $submission): void
+    {
+        $assignment = $submission->assignment;
+        if (! $assignment) {
+            return;
+        }
+
+        $enrollment = CourseEnrollment::where('course_class_id', $assignment->course_class_id)
+            ->where('user_id', $submission->user_id)
+            ->first();
+
+        if ($enrollment) {
+            $enrollment->updateLearningOutcome();
+        }
+    }
+
+    private function buildSubmissionGroups(Collection $submissions): Collection
+    {
+        if ($submissions->isEmpty()) {
+            return collect();
+        }
+
+        $classIds = $submissions->map(function ($submission) {
+            return $submission->assignment?->course?->id;
+        })->filter()->unique()->values();
+
+        $scheduleByClass = TrainingSchedule::with('program')
+            ->whereIn('id', $classIds)
+            ->get()
+            ->keyBy('id');
+
+        return $submissions->groupBy(function ($submission) use ($scheduleByClass) {
+            $classId = $submission->assignment?->course?->id;
+            $schedule = $classId ? $scheduleByClass->get($classId) : null;
+
+            return $schedule?->program?->judul ?? 'LAINNYA';
+        })->map(function (Collection $items) {
+            return $items->groupBy(function ($submission) {
+                return $submission->assignment?->course?->title ?? 'Kelas Tidak Diketahui';
+            });
+        });
     }
 }

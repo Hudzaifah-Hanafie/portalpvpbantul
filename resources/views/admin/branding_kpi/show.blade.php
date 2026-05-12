@@ -8,7 +8,7 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('admin.branding-kpi.download', $branding_kpi) }}" class="btn btn-outline-success"><i class="fas fa-download me-1"></i> Unduh</a>
-        <a href="{{ route('admin.branding-kpi.edit', $branding_kpi) }}" class="btn btn-primary">Edit</a>
+        <a href="{{ route('admin.branding-kpi.edit', $branding_kpi) }}" class="btn btn-primary">Ubah</a>
         <a href="{{ route('admin.branding-kpi.index') }}" class="btn btn-secondary">Kembali</a>
     </div>
 </div>

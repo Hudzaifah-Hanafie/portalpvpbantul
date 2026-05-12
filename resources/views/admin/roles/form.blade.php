@@ -14,7 +14,7 @@
             @endif
 
             <div class="col-md-6">
-                <label class="form-label">Nama Role (tanpa spasi)</label>
+                <label class="form-label">Nama Peran (tanpa spasi)</label>
                 <input type="text" name="name" class="form-control" value="{{ old('name', $role->name ?? '') }}" required>
                 @error('name') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
@@ -25,7 +25,7 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label d-block">Permission</label>
+                <label class="form-label d-block">Izin Akses</label>
                 <div class="row">
                     @php
                         $selectedPermissions = collect(old('permissions', ($role->exists ?? false) ? $role->permissions->pluck('id')->toArray() : []));

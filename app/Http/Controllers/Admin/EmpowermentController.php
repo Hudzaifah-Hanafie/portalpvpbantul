@@ -7,6 +7,7 @@ use App\Models\Empowerment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class EmpowermentController extends Controller
 {
@@ -109,7 +110,7 @@ class EmpowermentController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'urutan' => 'nullable|integer',
@@ -117,6 +118,12 @@ class EmpowermentController extends Controller
             'gambar' => 'nullable|image|max:2048',
             'status' => 'nullable|in:' . implode(',', array_keys(Empowerment::statuses())),
         ]);
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Empowerment $empowerment = null): void

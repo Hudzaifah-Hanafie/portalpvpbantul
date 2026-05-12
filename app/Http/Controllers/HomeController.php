@@ -44,34 +44,36 @@ use App\Support\EmailSettings;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
     public function index()
     {
         // 1. Mengambil 3 Berita Terbaru
-        $beritaTerbaru = Berita::where('status', Berita::STATUS_PUBLISHED)->latest()->take(3)->get();
+        $beritaTerbaru = Cache::remember('home_berita_terbaru', 3600, fn() => Berita::where('status', Berita::STATUS_PUBLISHED)->latest()->take(3)->get());
 
         // 2. Mengambil Semua Program Pelatihan
-        $programs = Program::all();
+        $programs = Cache::remember('home_programs', 3600, fn() => Program::published()->get());
 
         // 3. Mengambil 5 Pengumuman Terbaru yang terbit
-        $latestAnnouncements = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+        $latestAnnouncements = Cache::remember('home_announcements', 3600, fn() => Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
             ->orderByDesc('approved_at')
             ->orderByDesc('created_at')
             ->take(5)
-            ->get();
+            ->get());
 
         // 4. Mengambil 8 Foto Galeri Terbaru
-        $galeris = Galeri::latest()->take(8)->get();
+        $galeris = Cache::remember('home_galeris', 3600, fn() => Galeri::published()->latest()->take(8)->get());
 
-        $partners = Partner::where('is_active', true)->orderBy('urutan')->get();
-        $instructors = Instructor::where('is_active', true)->orderBy('urutan')->get();
-        $benefits = Benefit::where('is_active', true)->orderBy('urutan')->get();
-        $flowSteps = FlowStep::where('is_active', true)->orderBy('urutan')->get();
-        $testimonials = Testimonial::where('is_active', true)->orderBy('urutan')->get();
-        $trainingServices = TrainingService::where('is_active', true)->orderBy('urutan')->get();
-        $settings = SiteSetting::pluck('value', 'key');
+        $partners = Cache::remember('home_partners', 3600, fn() => Partner::where('is_active', true)->orderBy('urutan')->get());
+        $instructors = Cache::remember('home_instructors', 3600, fn() => Instructor::where('is_active', true)->orderBy('urutan')->get());
+        $benefits = Cache::remember('home_benefits', 3600, fn() => Benefit::where('is_active', true)->orderBy('urutan')->get());
+        $flowSteps = Cache::remember('home_flowSteps', 3600, fn() => FlowStep::where('is_active', true)->orderBy('urutan')->get());
+        $testimonials = Cache::remember('home_testimonials', 3600, fn() => Testimonial::where('is_active', true)->orderBy('urutan')->get());
+        $trainingServices = Cache::remember('home_trainingServices', 3600, fn() => TrainingService::where('is_active', true)->orderBy('urutan')->get());
+        $settings = Cache::remember('home_settings', 3600, fn() => SiteSetting::pluck('value', 'key'));
 
         // Mengirim semua data ke view 'home'
         return view('home', compact('beritaTerbaru', 'programs', 'latestAnnouncements', 'galeris', 'partners', 'instructors', 'benefits', 'flowSteps', 'testimonials', 'settings', 'trainingServices'));
@@ -79,7 +81,7 @@ class HomeController extends Controller
 
     public function katalogPelatihan()
     {
-        $programs = Program::latest()->paginate(12);
+        $programs = Program::published()->latest()->paginate(12);
         return view('pelatihan.katalog', compact('programs'));
     }
 
@@ -284,14 +286,18 @@ class HomeController extends Controller
     
     public function showBerita($slug)
     {
-        $berita = Berita::where('slug', $slug)->firstOrFail();
+        $berita = Berita::where('slug', $slug)
+            ->where('status', Berita::STATUS_PUBLISHED)
+            ->firstOrFail();
         $beritaLain = Berita::where('id', '!=', $berita->id)->latest()->take(5)->get();
         return view('detail_berita', compact('berita', 'beritaLain'));
     }
 
     public function showProgram($id)
     {
-        $program = Program::findOrFail($id);
+        $program = Program::published()
+            ->whereKey($id)
+            ->firstOrFail();
         $schedules = TrainingSchedule::where('program_id', $program->id)
             ->where('is_active', true)
             ->orderBy('mulai')
@@ -303,145 +309,47 @@ class HomeController extends Controller
         return view('detail_program', compact('program', 'schedules', 'enrolledScheduleIds'));
     }
 
-    public function kontak()
-    {
-        $captcha = $this->prepareCaptcha(self::CONTACT_CAPTCHA_KEY);
-
-        return view('kontak', [
-            'captchaQuestion' => $captcha['question'],
-        ]);
-    }
-
-    public function ppid()
-    {
-        $settings = SiteSetting::pluck('value', 'key');
-        $pageSetting = PpidSetting::first() ?? new PpidSetting([
-            'hero_title' => 'Profil PPID',
-            'hero_description' => 'Pejabat Pengelola Informasi dan Dokumentasi Satpel PVP Bantul.',
-            'hero_button_text' => 'Lihat Selengkapnya',
-            'hero_button_link' => '#form',
-            'profile_title' => 'Profil PPID',
-            'profile_description' => 'PPID bertugas memastikan pelayanan informasi publik berjalan sesuai prinsip transparansi dan akuntabilitas.',
-            'form_title' => 'Permohonan Informasi Publik',
-            'form_description' => 'Isi formulir berikut untuk mengajukan permohonan informasi.',
-        ]);
-        $highlights = PpidHighlight::where('is_active', true)->orderBy('urutan')->get();
-        $captcha = $this->prepareCaptcha(self::PPID_CAPTCHA_KEY);
-
-        return view('ppid', [
-            'setting' => $pageSetting,
-            'highlights' => $highlights,
-            'settings' => $settings,
-            'captchaQuestion' => $captcha['question'],
-        ]);
-    }
-
-    public function storePpidRequest(Request $request)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string|max:255',
-            'nomor_identitas' => 'required|digits_between:8,20',
-            'npwp' => 'nullable|string|max:255',
-            'pekerjaan' => 'required|string|max:255',
-            'jenis_pemohon' => 'nullable|string|max:255',
-            'alamat' => 'nullable|string',
-            'no_hp' => 'required|regex:/^[0-9+]{8,20}$/',
-            'email' => 'required|email|max:255',
-            'informasi_dimohon' => 'required|string',
-            'tujuan_penggunaan' => 'nullable|string',
-            'cara_memperoleh' => 'nullable|string',
-            'tanda_tangan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'captcha_answer' => 'required|numeric',
-        ]);
-
-        $this->validateCaptcha($request, self::PPID_CAPTCHA_KEY, 'captcha_answer');
-
-        if ($request->hasFile('tanda_tangan')) {
-            // simpan di storage privat agar tidak bisa diakses langsung
-            $data['tanda_tangan'] = $request->file('tanda_tangan')->store('ppid/signatures');
-        }
-
-        PpidRequest::create($data);
-
-        return redirect()->route('ppid')->with('success', 'Permohonan informasi publik berhasil dikirim.');
-    }
-
-    public function storeKontak(Request $request)
-    {
-        $this->validate($request, [
-            'nama' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'subjek' => 'required|string|max:255',
-            'pesan' => 'required|string|max:2000',
-            'captcha_answer' => 'required|numeric',
-        ]);
-
-        $this->validateCaptcha($request, self::CONTACT_CAPTCHA_KEY, 'captcha_answer');
-
-        \App\Models\Pesan::create($request->only(['nama', 'email', 'subjek', 'pesan']));
-
-        return back()->with('success', 'Terima kasih! Pesan Anda telah kami terima.');
-    }
-
-    public function alumniProfileForm()
-    {
-        $captcha = $this->prepareCaptcha(self::CONTACT_CAPTCHA_KEY);
-
-        return view('alumni.profile', [
-            'captchaQuestion' => $captcha['question'],
-        ]);
-    }
-
-    public function storeAlumniProfile(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:32',
-            'field_of_study' => 'nullable|string|max:255',
-            'graduation_year' => 'nullable|digits:4',
-            'employment_status' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'captcha_answer' => 'required|numeric',
-        ]);
-
-        $this->validateCaptcha($request, self::CONTACT_CAPTCHA_KEY, 'captcha_answer');
-
-        $data['is_active'] = true;
-        unset($data['captcha_answer']);
-
-        Alumni::updateOrCreate(
-            ['email' => $data['email']],
-            $data
-        );
-
-        return redirect()->route('alumni.profile.complete')->with('success', 'Profil alumni Anda telah diperbarui.');
-    }
+    // Moved to ContactController and PpidController and TracerStudyController
 
     public function search(Request $request)
     {
         // 1. Ambil kata kunci dari input form (name="q")
-        $keyword = $request->input('q');
+        if (is_array($request->query('q'))) {
+            abort(400, 'Parameter pencarian tidak valid.');
+        }
+        $validated = $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+        $keyword = trim((string) ($validated['q'] ?? ''));
 
         // Jika keyword kosong, kembalikan ke home atau halaman kosong
-        if (!$keyword) {
+        if ($keyword === '') {
             return redirect()->route('home');
         }
 
         // 2. Cari di Tabel BERITA (Judul ATAU Konten yang mengandung keyword)
-        $beritaResults = Berita::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('konten', 'LIKE', "%{$keyword}%")
+        $beritaResults = Berita::where('status', Berita::STATUS_PUBLISHED)
+                            ->where(function ($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('konten', 'LIKE', "%{$keyword}%");
+                            })
                             ->latest()
                             ->get();
 
         // 3. Cari di Tabel PROGRAM (Judul ATAU Deskripsi yang mengandung keyword)
-        $programResults = Program::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('deskripsi', 'LIKE', "%{$keyword}%")
+        $programResults = Program::published()
+                            ->where(function ($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('deskripsi', 'LIKE', "%{$keyword}%");
+                            })
                             ->get();
 
         // 4. Cari di Tabel PENGUMUMAN (Opsional, agar makin lengkap)
-        $pengumumanResults = Pengumuman::where('judul', 'LIKE', "%{$keyword}%")
-                            ->orWhere('isi', 'LIKE', "%{$keyword}%")
+        $pengumumanResults = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+                            ->where(function ($query) use ($keyword) {
+                                $query->where('judul', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('isi', 'LIKE', "%{$keyword}%");
+                            })
                             ->latest()
                             ->get();
 
@@ -510,7 +418,7 @@ class HomeController extends Controller
         );
         $visiMisi = Profile::where('key', 'visi_misi')->first();
         $structures = OrgStructure::with('children.children')->whereNull('parent_id')->orderBy('urutan')->get();
-        $galeris = Galeri::latest()->take(6)->get();
+        $galeris = Galeri::published()->latest()->take(6)->get();
         $settings = SiteSetting::pluck('value', 'key');
 
         return view('profil.instansi', compact('profilInstansi', 'selayang', 'visiMisi', 'structures', 'galeris', 'denah', 'settings', 'sejarah', 'strukturProfile'));
@@ -523,110 +431,17 @@ class HomeController extends Controller
         return view('profil.instruktur', compact('instructors', 'settings'));
     }
 
-    public function alumniTracerForm()
-    {
-        $programs = Program::orderBy('judul')->get();
-        $captcha = $this->prepareCaptcha(self::TRACER_CAPTCHA_KEY);
-
-        return view('alumni.tracer', [
-            'programs' => $programs,
-            'captchaQuestion' => $captcha['question'],
-        ]);
-    }
-
-    public function storeAlumniTracer(AlumniTracerRequest $request)
-    {
-        $this->validate($request, [
-            'captcha_answer' => 'required|numeric',
-        ]);
-
-        $this->validateCaptcha($request, self::TRACER_CAPTCHA_KEY, 'captcha_answer');
-
-        $email = $request->input('email');
-        if ($email && AlumniTracer::where('email', $email)->exists()) {
-            throw ValidationException::withMessages([
-                'email' => 'Email ini sudah pernah digunakan untuk tracer study.',
-            ]);
-        }
-
-        $nationalId = $request->input('national_id');
-        if ($nationalId && AlumniTracer::where('national_id', $nationalId)->exists()) {
-            throw ValidationException::withMessages([
-                'national_id' => 'Nomor identitas ini sudah tercatat, pastikan Anda tidak mengirim formulir ganda.',
-            ]);
-        }
-
-        $programName = $request->input('program_name') ?: optional(Program::find($request->input('program_id')))->judul;
-        $user = $email ? User::where('email', $email)->first() : null;
-
-        $alumniTracer = AlumniTracer::create(array_merge(
-            $request->validated(),
-            [
-                'program_name' => trim($programName ?? 'Belum terdaftar'),
-                'platform_origin' => 'website',
-                'consent_given' => true,
-                'consent_at' => now(),
-                'user_id' => $user?->id,
-            ]
-        ));
-
-        if ($alumniTracer->email && EmailSettings::confirmationsEnabled()) {
-            Mail::to($alumniTracer->email)->send(new AlumniTracerSubmission($alumniTracer));
-        }
-
-        return redirect()->route('alumni.tracer')->with('success', 'Terima kasih, data tracer telah tersimpan. Kami juga mengirimkan konfirmasi via email jika Anda memberikan alamat.');
-    }
-
-    private const CONTACT_CAPTCHA_KEY = 'contact_form_captcha';
-    private const TRACER_CAPTCHA_KEY = 'tracer_form_captcha';
-    private const PPID_CAPTCHA_KEY = 'ppid_form_captcha';
-
-    private function prepareCaptcha(string $sessionKey, bool $forceNew = false): array
-    {
-        if ($forceNew || !session()->has($sessionKey)) {
-            session([$sessionKey => $this->buildCaptchaPayload()]);
-        }
-
-        return session($sessionKey);
-    }
-
-    private function buildCaptchaPayload(): array
-    {
-        $first = random_int(3, 9);
-        $second = random_int(1, 9);
-        $operator = random_int(0, 1) === 1 ? '+' : '-';
-
-        if ($operator === '-' && $second > $first) {
-            [$first, $second] = [$second, $first];
-        }
-
-        $answer = $operator === '+' ? $first + $second : $first - $second;
-
-        return [
-            'question' => sprintf('%d %s %d = ?', $first, $operator, $second),
-            'answer' => $answer,
-        ];
-    }
-
-    private function validateCaptcha(Request $request, string $sessionKey, string $fieldName = 'captcha_answer'): void
-    {
-        $captcha = $this->prepareCaptcha($sessionKey);
-        $answer = trim((string) $request->input($fieldName));
-
-        if ($answer === '' || (int) $answer !== (int) $captcha['answer']) {
-            $this->prepareCaptcha($sessionKey, true);
-
-            throw ValidationException::withMessages([
-                $fieldName => 'Jawaban keamanan tidak sesuai. Silakan coba lagi.',
-            ]);
-        }
-
-        session()->forget($sessionKey);
-    }
+    // Tracer study and captcha methods extracted to TracerStudyController and HasMathCaptcha trait
 
     public function pengumumanIndex(Request $request)
     {
-        $search = trim($request->input('q', ''));
+        if (is_array($request->query('q'))) {
+            abort(400, 'Parameter pencarian tidak valid.');
+        }
+        $validated = $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+        $search = trim((string) ($validated['q'] ?? ''));
 
         $announcements = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
             ->when($search !== '', function ($query) use ($search) {

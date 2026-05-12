@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class TestimonialController extends Controller
 {
@@ -103,6 +104,9 @@ class TestimonialController extends Controller
 
         $data['urutan'] = $data['urutan'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
+        if (! empty($data['pesan'])) {
+            $data['pesan'] = HtmlSanitizer::clean($data['pesan']);
+        }
 
         return $data;
     }

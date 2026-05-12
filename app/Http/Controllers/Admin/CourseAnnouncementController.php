@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseAnnouncement;
 use App\Models\CourseClass;
 use App\Models\CourseEnrollment;
@@ -12,6 +13,8 @@ use Illuminate\Http\Request;
 
 class CourseAnnouncementController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -23,6 +26,10 @@ class CourseAnnouncementController extends Controller
         $classFilter = request('class_id');
 
         $query = CourseAnnouncement::with('course')->orderByDesc('published_at')->orderByDesc('created_at');
+        if ($this->isInstructorUser(request()->user())) {
+            $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+            $query->whereIn('course_class_id', $classIds);
+        }
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
         }
@@ -31,18 +38,18 @@ class CourseAnnouncementController extends Controller
         }
 
         $announcements = $query->paginate(20)->withQueryString();
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
 
         return view('admin.course_announcement.index', compact('announcements', 'statusOptions', 'statusFilter', 'classes', 'classFilter'));
     }
 
     public function create()
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
         return view('admin.course_announcement.form', [
             'announcement' => new CourseAnnouncement(['status' => 'draft']),
             'classes' => $classes,
-            'action' => route('admin.course-announcement.store'),
+            'action' => route($this->getRoutePrefix() . 'course-announcement.store'),
             'method' => 'POST',
         ]);
     }
@@ -50,6 +57,7 @@ class CourseAnnouncementController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $data['created_by'] = $request->user()->id;
         if ($data['status'] === 'published' && ! $data['published_at']) {
             $data['published_at'] = now();
@@ -67,16 +75,17 @@ class CourseAnnouncementController extends Controller
             $announcement
         );
 
-        return redirect()->route('admin.course-announcement.index')->with('success', 'Pengumuman disimpan.');
+        return redirect()->route($this->getRoutePrefix() . 'course-announcement.index')->with('success', 'Pengumuman disimpan.');
     }
 
     public function edit(CourseAnnouncement $course_announcement)
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_announcement->course_class_id);
+        $classes = $this->scopedClassOptions(request()->user());
         return view('admin.course_announcement.form', [
             'announcement' => $course_announcement,
             'classes' => $classes,
-            'action' => route('admin.course-announcement.update', $course_announcement->id),
+            'action' => route($this->getRoutePrefix() . 'course-announcement.update', $course_announcement->id),
             'method' => 'PUT',
         ]);
     }
@@ -84,6 +93,8 @@ class CourseAnnouncementController extends Controller
     public function update(Request $request, CourseAnnouncement $course_announcement)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $course_announcement->course_class_id);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $wasPublished = $course_announcement->status === 'published';
 
         if ($data['status'] === 'published' && ! $data['published_at']) {
@@ -103,11 +114,12 @@ class CourseAnnouncementController extends Controller
             $course_announcement
         );
 
-        return redirect()->route('admin.course-announcement.index')->with('success', 'Pengumuman diperbarui.');
+        return redirect()->route($this->getRoutePrefix() . 'course-announcement.index')->with('success', 'Pengumuman diperbarui.');
     }
 
     public function destroy(CourseAnnouncement $course_announcement)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_announcement->course_class_id);
         $this->logger->log(
             request()->user(),
             'course.announcement.deleted',
@@ -115,7 +127,7 @@ class CourseAnnouncementController extends Controller
             $course_announcement
         );
         $course_announcement->delete();
-        return redirect()->route('admin.course-announcement.index')->with('success', 'Pengumuman dihapus.');
+        return redirect()->route($this->getRoutePrefix() . 'course-announcement.index')->with('success', 'Pengumuman dihapus.');
     }
 
     private function validateData(Request $request): array

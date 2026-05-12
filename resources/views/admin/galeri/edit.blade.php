@@ -3,7 +3,7 @@
 @section('content')
 <div class="card border-0 shadow-sm col-md-8 mx-auto">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Edit Info Galeri</h5>
+        <h5 class="mb-0">Ubah Info Galeri</h5>
     </div>
     <div class="card-body">
         <form action="{{ route('admin.galeri.update', $galeri->id) }}" method="POST" enctype="multipart/form-data">

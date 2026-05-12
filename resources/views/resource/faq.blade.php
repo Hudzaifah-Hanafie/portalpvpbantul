@@ -117,7 +117,7 @@
                     <p class="text-uppercase small fw-semibold text-white-50 mb-1">{{ $setting->intro_title ?? 'Pertanyaan Utama' }}</p>
                     <h3 class="fw-bold mb-2">{{ $featuredFaq->question ?? 'Siap membantu kebutuhan informasi Anda' }}</h3>
                     <div class="text-white-50">
-                        {!! $featuredFaq->answer ?? 'Tidak menemukan informasi yang dibutuhkan? Tim layanan kami siap menjawab pertanyaan Anda melalui FAQ ini atau kanal kontak resmi kami.' !!}
+                        {!! \App\Support\HtmlSanitizer::clean($featuredFaq->answer ?? 'Tidak menemukan informasi yang dibutuhkan? Tim layanan kami siap menjawab pertanyaan Anda melalui FAQ ini atau kanal kontak resmi kami.') !!}
                     </div>
                     @if($setting->intro_description)
                         <div class="bg-white text-dark rounded-3 p-3 mt-3">
@@ -176,7 +176,7 @@
                                 </button>
                             </h2>
                             <div id="collapse-{{ $item->id }}" class="accordion-collapse collapse" data-bs-parent="#accordion-{{ $category->id }}">
-                                <div class="accordion-body">{!! $item->answer !!}</div>
+                                <div class="accordion-body">{!! \App\Support\HtmlSanitizer::clean($item->answer) !!}</div>
                             </div>
                         </div>
                     @empty

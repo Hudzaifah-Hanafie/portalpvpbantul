@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasUuid;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Galeri extends Model
 {
@@ -31,5 +32,10 @@ class Galeri extends Model
             'pending' => 'Menunggu Review',
             'published' => 'Terpublikasi',
         ];
+    }
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'published');
     }
 }

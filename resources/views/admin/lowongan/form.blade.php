@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $vacancy->exists ? 'Edit' : 'Tambah' }} Lowongan</h3>
+    <h3>{{ $vacancy->exists ? 'Ubah' : 'Tambah' }} Lowongan</h3>
     <a href="{{ route('admin.lowongan.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
@@ -82,7 +82,7 @@
                     @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Link Pendaftaran</label>
+                    <label class="form-label">Tautan Pendaftaran</label>
                     <input type="url" name="link_pendaftaran" class="form-control @error('link_pendaftaran') is-invalid @enderror" value="{{ old('link_pendaftaran', $vacancy->link_pendaftaran) }}" placeholder="https://">
                     @error('link_pendaftaran')
                         <div class="invalid-feedback">{{ $message }}</div>

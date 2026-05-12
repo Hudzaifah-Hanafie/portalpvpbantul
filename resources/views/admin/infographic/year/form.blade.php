@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $year->exists ? 'Edit' : 'Tambah' }} Tahun Infografis</h3>
+    <h3>{{ $year->exists ? 'Ubah' : 'Tambah' }} Tahun Infografis</h3>
     <a href="{{ route('admin.infographic-year.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
@@ -58,7 +58,7 @@
                     @error('hero_button_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Link Tombol Hero</label>
+                    <label class="form-label">Tautan Tombol Hero</label>
                     <input type="text" name="hero_button_link" class="form-control @error('hero_button_link') is-invalid @enderror" value="{{ old('hero_button_link', $year->hero_button_link) }}" maxlength="255">
                     @error('hero_button_link') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

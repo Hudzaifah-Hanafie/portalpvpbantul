@@ -7,10 +7,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Presensi</h4>
+        <h4 class="mb-0">Presensi Peserta</h4>
         <small class="text-muted">Kelola kehadiran per sesi.</small>
     </div>
-    <a href="{{ route('admin.course-attendance.create') }}" class="btn btn-primary btn-sm">Tambah Presensi</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.create' : 'admin.course-attendance.create')) }}" class="btn btn-primary btn-sm">Tambah Presensi</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -48,11 +48,11 @@
             </div>
             @if(request('status') || request('class_id') || request('session_id'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-attendance.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.index' : 'admin.course-attendance.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
             <div class="col-auto ms-auto">
-                <a href="{{ route('admin.course-attendance.export.csv', request()->all()) }}" class="btn btn-sm btn-outline-primary">Export CSV</a>
+                <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.export.csv' : 'admin.course-attendance.export.csv'), request()->all()) }}" class="btn btn-sm btn-outline-primary">Ekspor CSV</a>
             </div>
         </form>
 
@@ -66,6 +66,7 @@
                         <th>Status</th>
                         <th>Dicatat</th>
                         <th>Checked</th>
+                        <th>Bukti</th>
                         <th class="text-end">Aksi</th>
                     </tr>
                 </thead>
@@ -99,9 +100,16 @@
                                 {{ $att->checked_at ? $att->checked_at->format('d M Y H:i') : '-' }}
                                 @if($att->reason)<div class="text-muted">{{ $att->reason }}</div>@endif
                             </td>
+                            <td>
+                                @if($att->proof_url)
+                                    <a href="{{ $att->proof_url }}" target="_blank" rel="noopener">Lihat</a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="text-end">
-                                <a href="{{ route('admin.course-attendance.edit', $att->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                <form action="{{ route('admin.course-attendance.destroy', $att->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus presensi ini?')">
+                                <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.edit' : 'admin.course-attendance.edit'), $att->id) }}" class="btn btn-sm btn-warning">Ubah</a>
+                                <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-attendance.destroy' : 'admin.course-attendance.destroy'), $att->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus presensi ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-danger">Hapus</button>
@@ -110,7 +118,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Belum ada presensi.</td>
+                            <td colspan="7" class="text-center text-muted py-4">Belum ada presensi.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Dashboard Survey Instance</h4>
+        <h4 class="mb-0">Dasbor Survei Instans</h4>
         <small class="text-muted">Ringkasan respons, rata-rata, dan status anonimitas.</small>
     </div>
 </div>
@@ -21,7 +21,7 @@
                 </select>
             </div>
             <div class="col-sm-4">
-                <label class="form-label mb-1">Survey</label>
+                <label class="form-label mb-1">Survei</label>
                 <select name="survey_id" class="form-select form-select-sm">
                     <option value="">Semua</option>
                     @foreach($surveys as $id => $title)
@@ -34,7 +34,7 @@
             </div>
             @if($statusFilter || $surveyFilter)
                 <div class="col-auto">
-                    <a href="{{ route('admin.survey-instance.dashboard') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.survey-instance.dashboard') }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -45,7 +45,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Instance</div>
+                <div class="text-muted small">Instans</div>
                 <div class="fw-bold">{{ $totals['instances'] }}</div>
             </div>
         </div>
@@ -61,7 +61,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Rata-rata Numeric</div>
+                <div class="text-muted small">Rata-rata Numerik</div>
                 <div class="fw-bold">{{ $totals['avg_numeric'] ? number_format($totals['avg_numeric'], 2) : '-' }}</div>
             </div>
         </div>
@@ -69,7 +69,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Instance >= Threshold</div>
+                <div class="text-muted small">Instans ≥ Ambang</div>
                 <div class="fw-bold">{{ $totals['with_threshold'] }}</div>
             </div>
         </div>
@@ -78,12 +78,12 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body">
-        <h6 class="mb-3">Detail Instance</h6>
+        <h6 class="mb-3">Detail Instans</h6>
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Survey</th>
+                        <th>Survei</th>
                         <th>Kelas</th>
                         <th>Status</th>
                         <th>Respons</th>

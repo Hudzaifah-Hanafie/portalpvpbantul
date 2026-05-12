@@ -188,6 +188,8 @@ class CourseEnrollmentController extends Controller
         $data['admin_status'] = $data['admin_status'] ?? 'pending';
         $data['created_by'] = $request->user()->id;
         $enrollment = CourseEnrollment::create($data);
+        $enrollment->load('course');
+        $enrollment->updateLearningOutcome();
 
         if ($enrollment->user) {
             $enrollment->user->notify(new EnrollmentCreated($enrollment));
@@ -230,6 +232,8 @@ class CourseEnrollmentController extends Controller
         $data = $this->validateData($request, $course_enrollment->id);
         $data['admin_status'] = $data['admin_status'] ?? $course_enrollment->admin_status ?? 'pending';
         $course_enrollment->update($data);
+        $course_enrollment->load('course');
+        $course_enrollment->updateLearningOutcome();
 
         if ($course_enrollment->user && $data['status'] === 'blocked') {
             $course_enrollment->user->notify(new EnrollmentBlocked($course_enrollment));
@@ -252,6 +256,83 @@ class CourseEnrollmentController extends Controller
         );
 
         return redirect()->route('admin.course-enrollment.index')->with('success', 'Enrollment diperbarui.');
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        abort_unless($request->user()?->hasPermission('manage-enrollment'), 403);
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|exists:course_enrollments,id',
+            'action' => 'required|string',
+        ]);
+
+        $action = $data['action'];
+        $enrollments = CourseEnrollment::whereIn('id', $data['ids'])->get();
+        $updated = 0;
+
+        foreach ($enrollments as $enrollment) {
+            $changed = false;
+            switch ($action) {
+                case 'verify_admin':
+                    if ($enrollment->admin_status !== 'verified') {
+                        $enrollment->admin_status = 'verified';
+                        $changed = true;
+                    }
+                    break;
+                case 'reject_admin':
+                    if ($enrollment->admin_status !== 'rejected') {
+                        $enrollment->admin_status = 'rejected';
+                        $changed = true;
+                    }
+                    break;
+                case 'approve':
+                    if ($enrollment->status !== 'approved') {
+                        $enrollment->status = 'approved';
+                        $changed = true;
+                    }
+                    break;
+                case 'activate':
+                    if ($enrollment->status !== 'active') {
+                        $enrollment->status = 'active';
+                        $changed = true;
+                    }
+                    break;
+                case 'reject':
+                    if ($enrollment->status !== 'rejected') {
+                        $enrollment->status = 'rejected';
+                        $changed = true;
+                    }
+                    break;
+                case 'block':
+                    if ($enrollment->status !== 'blocked') {
+                        $enrollment->status = 'blocked';
+                        $changed = true;
+                    }
+                    break;
+                default:
+                    return back()->with('error', 'Aksi bulk tidak dikenali.');
+            }
+
+            if ($changed) {
+                $enrollment->save();
+                $updated++;
+
+                if ($action === 'approve'
+                    && EnrollmentPolicy::couponIssueMode() === EnrollmentPolicy::COUPON_APPROVED) {
+                    $enrollment->issueCoupon('approved', $request->user()->id);
+                }
+            }
+        }
+
+        $this->logger->log(
+            $request->user(),
+            'course.enrollment.bulk.updated',
+            "Bulk update enrollment: {$action} ({$updated} peserta)",
+            ['action' => $action, 'updated' => $updated]
+        );
+
+        return back()->with('success', "Bulk update selesai. {$updated} peserta diperbarui.");
     }
 
     public function destroy(CourseEnrollment $course_enrollment)
@@ -280,10 +361,12 @@ class CourseEnrollmentController extends Controller
             'admin_note' => $data['admin_note'] ?? $course_enrollment->admin_note,
         ]);
 
+        $userName = $course_enrollment->user->name ?? 'peserta';
+        $courseTitle = $course_enrollment->course->title ?? '-';
         $this->logger->log(
             $request->user(),
             'course.enrollment.verified',
-            "Verifikasi enrollment {$course_enrollment->user->name ?? 'peserta'} untuk {$course_enrollment->course->title ?? '-'} menjadi {$data['admin_status']}",
+            "Verifikasi enrollment {$userName} untuk {$courseTitle} menjadi {$data['admin_status']}",
             $course_enrollment
         );
 
@@ -300,6 +383,10 @@ class CourseEnrollmentController extends Controller
             'muted_until' => 'nullable|date|after:now',
             'admin_status' => 'nullable|in:' . implode(',', array_keys($adminStatuses)),
             'admin_note' => 'nullable|string',
+            'pre_test_score' => 'nullable|numeric|min:0|max:100',
+            'post_test_score' => 'nullable|numeric|min:0|max:100',
+            'practice_score' => 'nullable|numeric|min:0|max:100',
+            'attitude_score' => 'nullable|numeric|min:0|max:100',
         ];
 
         if ($ignoreId) {

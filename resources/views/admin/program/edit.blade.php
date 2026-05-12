@@ -3,7 +3,7 @@
 @section('content')
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Edit Program: {{ $program->judul }}</h5>
+        <h5 class="mb-0">Ubah Program: {{ $program->judul }}</h5>
     </div>
     <div class="card-body">
         <form action="{{ route('admin.program.update', $program->id) }}" method="POST" enctype="multipart/form-data">
@@ -81,7 +81,7 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Link Pendaftaran</label>
+                <label class="form-label">Tautan Pendaftaran</label>
                 <input
                     type="url"
                     name="pendaftaran_link"

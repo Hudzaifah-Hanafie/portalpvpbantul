@@ -21,7 +21,7 @@
 
             <div class="bg-white p-4 p-md-5 shadow-sm rounded">
                 <div class="content-body" style="text-align: justify; line-height: 1.8; color: #333;">
-                    {!! $data->konten !!}
+                    {!! \App\Support\HtmlSanitizer::clean($data->konten) !!}
                 </div>
             </div>
 

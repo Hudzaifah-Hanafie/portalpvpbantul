@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FlowStep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Support\HtmlSanitizer;
 
 class FlowStepController extends Controller
 {
@@ -61,12 +62,18 @@ class FlowStepController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
             'urutan' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
         ]);
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+
+        return $data;
     }
 
     private function resolveTitle(array $data, ?string $fallback = null): string

@@ -8,7 +8,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $isEdit ? 'Edit Alur Pelayanan' : 'Tambah Alur Pelayanan' }}</h4>
+        <h4 class="mb-0">{{ $isEdit ? 'Ubah Alur Pelayanan' : 'Tambah Alur Pelayanan' }}</h4>
         <small class="text-muted">Isi detail langkah, gambar, dan urutan untuk menyesuaikan dengan UI.</small>
     </div>
     <a href="{{ route('admin.public-service-flow.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -90,7 +90,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $isEdit ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $isEdit ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

@@ -57,6 +57,37 @@
                 <span class="badge {{ $couponStep }}">5. Kupon SIAP Kerja: {{ $couponLabel }}</span>
             </div>
 
+            @if(in_array($enrollment->status, ['approved', 'active', 'completed'], true))
+                @php
+                    $timeline = $classTimeline[$enrollment->course_class_id] ?? null;
+                @endphp
+                @if($timeline)
+                    @php
+                        $attendanceDone = ($timeline['session_total'] ?? 0) > 0 && ($timeline['session_attended'] ?? 0) > 0;
+                        $assignmentDone = ($timeline['assignment_submitted'] ?? 0) > 0;
+                        $projectDone = $timeline['final_project_done'] ?? false;
+                        $examDone = $timeline['final_exam_done'] ?? false;
+                    @endphp
+                    <div class="border rounded bg-light p-3 mt-3">
+                        <div class="fw-semibold mb-2">Timeline Kelas</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge {{ $attendanceDone ? 'bg-success' : 'bg-warning text-dark' }}">
+                                Presensi: {{ $timeline['session_attended'] ?? 0 }}/{{ $timeline['session_total'] ?? 0 }}
+                            </span>
+                            <span class="badge {{ $assignmentDone ? 'bg-success' : 'bg-warning text-dark' }}">
+                                Tugas: {{ $timeline['assignment_submitted'] ?? 0 }}/{{ $timeline['assignment_total'] ?? 0 }}
+                            </span>
+                            <span class="badge {{ $projectDone ? 'bg-success' : 'bg-secondary' }}">
+                                Proyek Akhir: {{ $projectDone ? 'Selesai' : 'Belum' }}
+                            </span>
+                            <span class="badge {{ $examDone ? 'bg-success' : 'bg-secondary' }}">
+                                Ujian Final: {{ $examDone ? 'Selesai' : 'Belum' }}
+                            </span>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
             <div class="row g-3 mt-3">
                 <div class="col-md-4">
                     <div class="small text-muted">Skor CBT</div>
@@ -98,7 +129,7 @@
         </div>
     </div>
 @empty
-    <div class="alert alert-info">
+    <div class="alert alert-info alert-modern">
         Belum ada data pendaftaran. Silakan daftar pelatihan melalui portal Satpel.
     </div>
 @endforelse

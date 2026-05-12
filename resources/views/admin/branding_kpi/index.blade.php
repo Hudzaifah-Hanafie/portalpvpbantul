@@ -6,7 +6,14 @@
         <h3 class="mb-1">Laporan Branding KPI</h3>
         <p class="text-muted mb-0">Rekap manual monitoring branding setiap bulan.</p>
     </div>
-    <a href="{{ route('admin.branding-kpi.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Tambah Laporan</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.branding-kpi.integrations') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plug me-1"></i> Integrasi & Sinkron
+        </a>
+        <a href="{{ route('admin.branding-kpi.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Tambah Laporan
+        </a>
+    </div>
 </div>
 
 <div class="card mb-4 border-0 shadow-sm">

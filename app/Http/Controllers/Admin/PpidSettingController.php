@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PpidSetting;
 use Illuminate\Http\Request;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class PpidSettingController extends Controller
 {
@@ -39,6 +40,9 @@ class PpidSettingController extends Controller
 
         if ($request->hasFile('hero_image')) {
             $data['hero_image'] = '/storage/' . $request->file('hero_image')->store('ppid', 'public');
+        }
+        if (! empty($data['form_embed'])) {
+            $data['form_embed'] = HtmlSanitizer::cleanEmbed($data['form_embed']);
         }
 
         $setting->fill($data)->save();

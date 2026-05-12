@@ -10,7 +10,13 @@ class AlumniController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->query('q');
+        if (is_array($request->query('q'))) {
+            abort(400, 'Parameter pencarian tidak valid.');
+        }
+        $validated = $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+        $search = trim((string) ($validated['q'] ?? ''));
         $alumni = Alumni::query()
             ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")

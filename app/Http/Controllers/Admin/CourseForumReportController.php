@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseEnrollment;
 use App\Models\CourseForumReport;
 use App\Notifications\ForumPostRemoved;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class CourseForumReportController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -25,6 +28,11 @@ class CourseForumReportController extends Controller
 
         $query = CourseForumReport::with(['post.topic.course', 'post.user', 'reporter'])
             ->orderByDesc('created_at');
+        if ($this->isInstructorUser($request->user())) {
+            $query->whereHas('post.topic.course', function ($builder) use ($request) {
+                $builder->where('instructor_id', $request->user()->id);
+            });
+        }
 
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
@@ -37,6 +45,10 @@ class CourseForumReportController extends Controller
 
     public function resolve(Request $request, CourseForumReport $course_forum_report)
     {
+        $courseClassId = $course_forum_report->post?->topic?->course_class_id;
+        if ($courseClassId) {
+            $this->ensureInstructorOwnsClassId($request->user(), $courseClassId);
+        }
         $course_forum_report->update(['status' => 'resolved']);
         $reporter = $course_forum_report->reporter;
         $post = $course_forum_report->post;
@@ -68,6 +80,10 @@ class CourseForumReportController extends Controller
 
     public function deletePost(Request $request, CourseForumReport $course_forum_report)
     {
+        $courseClassId = $course_forum_report->post?->topic?->course_class_id;
+        if ($courseClassId) {
+            $this->ensureInstructorOwnsClassId($request->user(), $courseClassId);
+        }
         $post = $course_forum_report->post;
         if (! $post) {
             return back()->with('error', 'Post sudah tidak ditemukan.');
@@ -103,11 +119,15 @@ class CourseForumReportController extends Controller
             ]
         );
 
-        return redirect()->route('admin.course-forum-reports.index')->with('success', 'Post dihapus dan laporan tertutup.');
+        return redirect()->route($this->getRoutePrefix() . 'course-forum-reports.index')->with('success', 'Post dihapus dan laporan tertutup.');
     }
 
     public function mute(Request $request, CourseForumReport $course_forum_report)
     {
+        $courseClassId = $course_forum_report->post?->topic?->course_class_id;
+        if ($courseClassId) {
+            $this->ensureInstructorOwnsClassId($request->user(), $courseClassId);
+        }
         $data = $request->validate([
             'duration_days' => 'nullable|integer|min:1|max:365',
             'mute_until' => 'nullable|date|after:now',

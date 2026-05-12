@@ -14,10 +14,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    use HasApiTokens;
     use HasUuid;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -113,18 +114,14 @@ class User extends Authenticatable
         $this->roles()->sync(array_filter($roleIds));
     }
 
-    public function generateApiToken(): string
+    public function generateApiToken(string $name = 'api'): string
     {
-        $this->api_token = Str::random(60);
-        $this->save();
-
-        return $this->api_token;
+        return $this->createToken($name)->plainTextToken;
     }
 
     public function revokeApiToken(): void
     {
-        $this->api_token = null;
-        $this->save();
+        $this->tokens()->delete();
     }
 
     public function forumTopics(): HasMany
@@ -175,5 +172,30 @@ class User extends Authenticatable
     public function languages(): HasMany
     {
         return $this->hasMany(UserLanguage::class);
+    }
+
+    public function kejuruanModules(): HasMany
+    {
+        return $this->hasMany(KejuruanModule::class, 'owner_id');
+    }
+
+    public function trainingDocumentations(): HasMany
+    {
+        return $this->hasMany(TrainingDocumentation::class, 'owner_id');
+    }
+
+    public function adminNotifications(): HasMany
+    {
+        return $this->hasMany(AdminNotification::class);
+    }
+
+    public function gamificationPoints(): HasMany
+    {
+        return $this->hasMany(GamificationPoint::class);
+    }
+
+    public function materialProgress(): HasMany
+    {
+        return $this->hasMany(CourseMaterialProgress::class);
     }
 }

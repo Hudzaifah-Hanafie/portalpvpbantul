@@ -8,6 +8,7 @@ use App\Models\PublicationCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class PublicationItemController extends Controller
 {
@@ -127,7 +128,7 @@ class PublicationItemController extends Controller
         ]);
         $data['title'] = strip_tags($data['title']);
         $data['subtitle'] = $data['subtitle'] ? strip_tags($data['subtitle']) : null;
-        $data['description'] = $data['description'] ? strip_tags($data['description'], '<p><br><strong><em><ul><ol><li><a>') : null;
+        $data['description'] = $data['description'] ? HtmlSanitizer::clean($data['description']) : null;
         $data['badge'] = $data['badge'] ? strip_tags($data['badge']) : null;
         $data['button_text'] = $data['button_text'] ? strip_tags($data['button_text']) : null;
         $data['extra'] = $data['extra'] ? array_values(array_filter(array_map('trim', preg_split("/(\r?\n)+/", $data['extra'])))) : null;

@@ -7,7 +7,7 @@
 @section('content')
 <div class="card shadow-sm border-0 col-lg-8">
     <div class="card-header bg-white">
-        <h5 class="mb-0">{{ $testimonial->exists ? 'Edit' : 'Tambah' }} Testimoni</h5>
+        <h5 class="mb-0">{{ $testimonial->exists ? 'Ubah' : 'Tambah' }} Testimoni</h5>
     </div>
     <div class="card-body">
         @if ($errors->any())

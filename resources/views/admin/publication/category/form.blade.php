@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $category->exists ? 'Edit' : 'Tambah' }} Kategori Publikasi</h3>
+    <h3>{{ $category->exists ? 'Ubah' : 'Tambah' }} Kategori Publikasi</h3>
     <a href="{{ route('admin.publication-category.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
@@ -37,7 +37,7 @@
                 <div class="col-md-4">
                     <label class="form-label">Layout</label>
                     <select name="layout" class="form-select @error('layout') is-invalid @enderror" required>
-                        @php $layouts = ['cards' => 'Grid Kartu', 'infographic' => 'Infografis', 'list' => 'Daftar', 'downloads' => 'Download List', 'alumni' => 'Alumni']; @endphp
+                        @php $layouts = ['cards' => 'Grid Kartu', 'infographic' => 'Infografis', 'list' => 'Daftar', 'downloads' => 'Unduh List', 'alumni' => 'Alumni']; @endphp
                         @foreach($layouts as $key => $label)
                             <option value="{{ $key }}" {{ old('layout', $category->layout) == $key ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach

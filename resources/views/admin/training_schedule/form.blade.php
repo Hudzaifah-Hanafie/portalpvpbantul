@@ -3,7 +3,7 @@
 @section('content')
 <div class="card shadow-sm border-0 col-lg-10">
     <div class="card-header bg-white">
-        <h5 class="mb-0">{{ $schedule->exists ? 'Edit' : 'Tambah' }} Jadwal Pelatihan</h5>
+        <h5 class="mb-0">{{ $schedule->exists ? 'Ubah' : 'Tambah' }} Jadwal Pelatihan</h5>
     </div>
     <div class="card-body">
         <form action="{{ $action }}" method="POST">
@@ -43,7 +43,7 @@
                     <input type="text" name="kuota" class="form-control" value="{{ old('kuota', $schedule->kuota) }}" placeholder="mis. 20 peserta">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Link Pendaftaran</label>
+                    <label class="form-label fw-bold">Tautan Pendaftaran</label>
                     <input type="text" name="pendaftaran_link" class="form-control" value="{{ old('pendaftaran_link', $schedule->pendaftaran_link) }}" placeholder="https://...">
                 </div>
                 <div class="col-12">

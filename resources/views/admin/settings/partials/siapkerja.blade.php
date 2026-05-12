@@ -18,7 +18,7 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <div class="fw-semibold">SSO (Login User)</div>
+                    <div class="fw-semibold">SSO (Masuk Pengguna)</div>
                     <small class="text-muted">Gunakan kredensial aplikasi untuk Authorization Code Flow.</small>
                 </div>
                 <div class="row g-3">
@@ -201,7 +201,7 @@
                         <input type="text" name="siapkerja_service_pencaker_id" class="form-control" value="{{ $servicePencakerValue }}" placeholder="Service-ID pencaker">
                     </div>
                     <div class="col-12">
-                        <div class="fw-semibold mt-2">Filter Query (opsional)</div>
+                        <div class="fw-semibold mt-2">Kueri Filter (opsional)</div>
                         <small class="text-muted">Dikirim ke semua service. Untuk Informasi Pelatihan, isi salah satu <span class="fw-semibold">prov_code</span> atau <span class="fw-semibold">city_code</span>.</small>
                     </div>
                     <div class="col-md-6">

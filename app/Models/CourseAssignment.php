@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\CourseModule;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,9 +14,12 @@ class CourseAssignment extends Model
 
     protected $fillable = [
         'course_class_id',
+        'course_module_id',
         'title',
         'description',
         'type',
+        'quiz_scope',
+        'assessment_type',
         'due_at',
         'weight',
         'max_score',
@@ -64,6 +68,11 @@ class CourseAssignment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(CourseClass::class, 'course_class_id');
+    }
+
+    public function module(): BelongsTo
+    {
+        return $this->belongsTo(CourseModule::class, 'course_module_id');
     }
 
     public function submissions(): HasMany

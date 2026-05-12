@@ -53,7 +53,7 @@
             <div class="col-md-2">
                 <button class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
                 @if(array_filter($filters ?? []))
-                    <a href="{{ route('admin.activity-logs.index') }}" class="btn btn-link btn-sm">Reset</a>
+                    <a href="{{ route('admin.activity-logs.index') }}" class="btn btn-link btn-sm">Atur Ulang</a>
                 @endif
             </div>
         </form>
@@ -69,7 +69,7 @@
                     <th>Target</th>
                     <th>Deskripsi</th>
                     <th>IP</th>
-                    <th>User Agent</th>
+                    <th>Agen Pengguna</th>
                     <th class="text-end">Aksi</th>
                 </tr>
             </thead>

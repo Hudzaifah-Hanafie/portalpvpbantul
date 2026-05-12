@@ -38,7 +38,7 @@
                         <dd class="col-7 fw-semibold">{{ $program->external_id ?? '-' }}</dd>
                         <dt class="col-5 text-muted">Status</dt>
                         <dd class="col-7 fw-semibold text-capitalize">{{ $program->status ?? 'draft' }}</dd>
-                        <dt class="col-5 text-muted">Link Daftar</dt>
+                        <dt class="col-5 text-muted">Tautan Daftar</dt>
                         <dd class="col-7">
                             @if($program->pendaftaran_link)
                                 <a href="{{ $program->pendaftaran_link }}" target="_blank" class="text-decoration-none">{{ $program->pendaftaran_link }}</a>

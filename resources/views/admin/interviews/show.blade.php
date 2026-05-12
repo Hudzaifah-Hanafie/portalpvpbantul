@@ -7,7 +7,7 @@
         <small class="text-muted">Kelola peserta, kehadiran, dan penilaian.</small>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.interview-session.edit', $session->id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+        <a href="{{ route('admin.interview-session.edit', $session->id) }}" class="btn btn-outline-primary btn-sm">Ubah</a>
         <a href="{{ route('admin.interview-session.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>
 </div>

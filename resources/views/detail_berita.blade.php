@@ -22,7 +22,7 @@
                     <img src="{{ $berita->gambar_utama }}" class="img-fluid rounded mb-4 w-100" alt="{{ $berita->judul }}">
 
                     <div class="content-body" style="line-height: 1.8; font-size: 1.05rem;">
-                        {!! $berita->konten !!}
+                        {!! \App\Support\HtmlSanitizer::clean($berita->konten) !!}
                     </div>
                 </article>
 

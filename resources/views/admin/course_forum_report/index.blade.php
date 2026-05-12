@@ -31,7 +31,7 @@
             </div>
             @if(request('status'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-forum-reports.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-forum-reports.index' : 'admin.course-forum-reports.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -72,15 +72,15 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-flex flex-column gap-1 align-items-end">
-                                    <form action="{{ route('admin.course-forum-reports.resolve', $report->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-forum-reports.resolve' : 'admin.course-forum-reports.resolve'), $report->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button class="btn btn-sm btn-outline-success" @disabled($report->status === 'resolved')>Resolve</button>
                                     </form>
-                                    <form action="{{ route('admin.course-forum-reports.delete-post', $report->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus post ini? Tindakan ini juga menutup laporan.');">
+                                    <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-forum-reports.delete-post' : 'admin.course-forum-reports.delete-post'), $report->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus post ini? Tindakan ini juga menutup laporan.');">
                                         @csrf
                                         <button class="btn btn-sm btn-outline-danger">Hapus Post</button>
                                     </form>
-                                    <form action="{{ route('admin.course-forum-reports.mute', $report->id) }}" method="POST" class="d-flex align-items-center gap-1">
+                                    <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-forum-reports.mute' : 'admin.course-forum-reports.mute'), $report->id) }}" method="POST" class="d-flex align-items-center gap-1">
                                         @csrf
                                         <input type="number" name="duration_days" min="1" max="365" value="7" class="form-control form-control-sm" style="width:80px" title="Durasi (hari)">
                                         <button class="btn btn-sm btn-outline-secondary">Mute</button>

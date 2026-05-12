@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasUuid;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingSchedule extends Model
 {
@@ -36,5 +37,10 @@ class TrainingSchedule extends Model
     public function program()
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function documentations(): HasMany
+    {
+        return $this->hasMany(TrainingDocumentation::class);
     }
 }

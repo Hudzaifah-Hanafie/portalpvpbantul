@@ -48,15 +48,25 @@ class SendCourseReminders extends Command
             ->whereNotNull('due_at')
             ->whereBetween('due_at', [$now, $windowEnd])
             ->chunk(50, function ($assignments) use ($now) {
+                $classIds = $assignments->pluck('course_class_id')->unique();
+                $enrollmentsMap = CourseEnrollment::with('user')
+                    ->whereIn('course_class_id', $classIds)
+                    ->whereIn('status', ['active', 'approved'])
+                    ->get()
+                    ->groupBy('course_class_id');
+                
+                $assignmentIds = $assignments->pluck('id');
+                $submissionsMap = CourseSubmission::whereIn('course_assignment_id', $assignmentIds)
+                    ->get()
+                    ->groupBy('course_assignment_id');
+
                 foreach ($assignments as $assignment) {
-                    $enrollments = CourseEnrollment::where('course_class_id', $assignment->course_class_id)
-                        ->whereIn('status', ['active', 'approved'])
-                        ->get();
+                    $enrollments = $enrollmentsMap->get($assignment->course_class_id) ?? collect();
+                    $assignmentSubmissions = $submissionsMap->get($assignment->id) ?? collect();
+                    $submittedUserIds = $assignmentSubmissions->pluck('user_id')->unique()->flip();
+
                     foreach ($enrollments as $enroll) {
-                        $hasSubmitted = CourseSubmission::where('course_assignment_id', $assignment->id)
-                            ->where('user_id', $enroll->user_id)
-                            ->exists();
-                        if ($hasSubmitted || ! $enroll->user) {
+                        if ($submittedUserIds->has($enroll->user_id) || ! $enroll->user) {
                             continue;
                         }
                         $enroll->user->notify(new AssignmentDueReminder(
@@ -84,10 +94,15 @@ class SendCourseReminders extends Command
             ->where('is_active', true)
             ->whereBetween('start_at', [$now, $windowEnd])
             ->chunk(50, function ($sessions) {
+                $classIds = $sessions->pluck('course_class_id')->unique();
+                $enrollmentsMap = CourseEnrollment::with('user')
+                    ->whereIn('course_class_id', $classIds)
+                    ->whereIn('status', ['active', 'approved'])
+                    ->get()
+                    ->groupBy('course_class_id');
+
                 foreach ($sessions as $session) {
-                    $enrollments = CourseEnrollment::where('course_class_id', $session->course_class_id)
-                        ->whereIn('status', ['active', 'approved'])
-                        ->get();
+                    $enrollments = $enrollmentsMap->get($session->course_class_id) ?? collect();
                     foreach ($enrollments as $enroll) {
                         if (! $enroll->user) {
                             continue;

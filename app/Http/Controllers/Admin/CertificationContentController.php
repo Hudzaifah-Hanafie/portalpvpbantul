@@ -7,6 +7,7 @@ use App\Models\CertificationContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class CertificationContentController extends Controller
 {
@@ -140,7 +141,7 @@ class CertificationContentController extends Controller
         unset($data['list_items']);
         $data['title'] = $data['title'] ? strip_tags($data['title']) : null;
         $data['subtitle'] = $data['subtitle'] ? strip_tags($data['subtitle']) : null;
-        $data['description'] = $data['description'] ? strip_tags($data['description'], '<p><br><strong><em><ul><ol><li><a>') : null;
+        $data['description'] = $data['description'] ? HtmlSanitizer::clean($data['description']) : null;
         $data['badge'] = $data['badge'] ? strip_tags($data['badge']) : null;
         $data['button_text'] = $data['button_text'] ? strip_tags($data['button_text']) : null;
         $data['background'] = $data['background'] ? strip_tags($data['background']) : null;

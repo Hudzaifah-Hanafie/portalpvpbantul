@@ -33,5 +33,14 @@ class DatabaseSeeder extends Seeder
             PpidSeeder::class,
             SurveySeeder::class,
         ]);
+
+        if (app()->environment('local')) {
+            $this->call([
+                ReportDemoSeeder::class,
+                KejuruanModuleSeeder::class,
+                ParticipantSeeder::class,
+                ParticipantEnrollmentSeeder::class,
+            ]);
+        }
     }
 }

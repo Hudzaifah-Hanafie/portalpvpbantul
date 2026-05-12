@@ -3,12 +3,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Channel Hubungi Kami</h4>
+        <h4 class="mb-0">Saluran Hubungi Kami</h4>
         <small class="text-muted">Kelola kartu informasi kontak seperti alamat, telepon, dan sosial media.</small>
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('resource.hubungi') }}" target="_blank" class="btn btn-outline-primary btn-sm">Lihat Halaman</a>
-        <a href="{{ route('admin.contact-channel.create') }}" class="btn btn-primary btn-sm">Tambah Channel</a>
+        <a href="{{ route('admin.contact-channel.create') }}" class="btn btn-primary btn-sm">Tambah Saluran</a>
     </div>
 </div>
 
@@ -43,7 +43,7 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.contact-channel.edit', $channel) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{{ route('admin.contact-channel.edit', $channel) }}" class="btn btn-sm btn-warning">Ubah</a>
                             <form action="{{ route('admin.contact-channel.destroy', $channel) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus channel ini?')">
                                 @csrf
                                 @method('DELETE')

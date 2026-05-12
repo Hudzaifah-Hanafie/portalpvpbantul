@@ -7,7 +7,7 @@
             <p class="text-muted mb-0">Kelola akun dan peran pengguna portal.</p>
         </div>
         @can('create', App\Models\User::class)
-            <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Tambah User</a>
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Tambah Pengguna</a>
         @endcan
     </div>
 
@@ -40,17 +40,17 @@
                                 <form action="{{ route('admin.impersonate.start', $user) }}" method="POST" class="d-inline me-2" onsubmit="return confirm('Masuk sebagai {{ $user->name }}?')">
                                     @csrf
                                     <button class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-user-secret"></i> Impersonate
+                                        <i class="fas fa-user-secret"></i> Impersonasi
                                     </button>
                                 </form>
                             @endcan
                             @can('update', $user)
                                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-2">
-                                    <i class="fas fa-edit"></i> Edit
+                                    <i class="fas fa-edit"></i> Ubah
                                 </a>
                             @endcan
                             @can('delete', $user)
-                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus user ini?')">
+                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus pengguna ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger">

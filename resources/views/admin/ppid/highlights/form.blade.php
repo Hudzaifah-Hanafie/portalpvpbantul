@@ -7,7 +7,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $isEdit ? 'Edit' : 'Tambah' }} Highlight PPID</h4>
+        <h4 class="mb-0">{{ $isEdit ? 'Ubah' : 'Tambah' }} Highlight PPID</h4>
         <small class="text-muted">Sesuaikan icon, judul, dan deskripsi highlight.</small>
     </div>
     <a href="{{ route('admin.ppid-highlight.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -56,7 +56,7 @@
     </div>
 
     <div class="text-end">
-        <button class="btn btn-primary px-4">{{ $isEdit ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $isEdit ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

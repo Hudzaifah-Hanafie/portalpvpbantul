@@ -10,7 +10,7 @@
         <h4 class="mb-0">Pengumuman Kelas</h4>
         <small class="text-muted">Kelola pengumuman yang tampil ke peserta kelas.</small>
     </div>
-    <a href="{{ route('admin.course-announcement.create') }}" class="btn btn-primary btn-sm">Tambah Pengumuman</a>
+    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-announcement.create' : 'admin.course-announcement.create')) }}" class="btn btn-primary btn-sm">Tambah Pengumuman</a>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -40,7 +40,7 @@
             </div>
             @if(request('status') || request('class_id'))
                 <div class="col-auto">
-                    <a href="{{ route('admin.course-announcement.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-announcement.index' : 'admin.course-announcement.index')) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 </div>
             @endif
         </form>
@@ -69,8 +69,8 @@
                             </td>
                             <td class="small">{{ $announcement->published_at?->format('d M Y H:i') ?? '-' }}</td>
                             <td class="text-end">
-                                <a href="{{ route('admin.course-announcement.edit', $announcement->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                <form action="{{ route('admin.course-announcement.destroy', $announcement->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus pengumuman ini?')">
+                                <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-announcement.edit' : 'admin.course-announcement.edit'), $announcement->id) }}" class="btn btn-sm btn-warning">Ubah</a>
+                                <form action="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-announcement.destroy' : 'admin.course-announcement.destroy'), $announcement->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus pengumuman ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-danger">Hapus</button>

@@ -16,6 +16,9 @@ class EventServiceProvider extends ServiceProvider
         Logout::class => [
             \App\Listeners\LogLogout::class,
         ],
+        \App\Events\GamificationPointEarned::class => [
+            \App\Listeners\AwardGamificationPoint::class,
+        ]
     ];
 
     public function boot(): void

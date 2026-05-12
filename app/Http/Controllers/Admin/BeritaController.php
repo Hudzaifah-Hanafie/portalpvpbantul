@@ -8,6 +8,7 @@ use App\Models\Berita;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class BeritaController extends Controller
 {
@@ -184,7 +185,11 @@ class BeritaController extends Controller
             'gambar_utama.max' => 'Ukuran gambar maksimal 2MB.',
         ];
 
-        return $request->validate($rules, $messages);
+        $data = $request->validate($rules, $messages);
+        $data['konten'] = HtmlSanitizer::clean($data['konten']);
+        $data['excerpt'] = $data['excerpt'] ? strip_tags($data['excerpt']) : null;
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?Berita $berita = null): void

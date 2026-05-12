@@ -42,18 +42,18 @@
                         <div class="mb-4">
                             <h3 class="fw-bold text-primary">Visi</h3>
                             <div class="text-muted" style="font-size: 1.1rem; line-height: 1.8;">
-                                {!! $visiDecoded['visi'] !!}
+                                {!! \App\Support\HtmlSanitizer::clean($visiDecoded['visi']) !!}
                             </div>
                         </div>
                         <div>
                             <h3 class="fw-bold text-primary">Misi</h3>
                             <div class="text-muted" style="font-size: 1.1rem; line-height: 1.8;">
-                                {!! $visiDecoded['misi'] !!}
+                                {!! \App\Support\HtmlSanitizer::clean($visiDecoded['misi']) !!}
                             </div>
                         </div>
                     @else
                         <div class="content-body" style="font-size: 1.1rem; line-height: 1.8;">
-                            {!! $data->konten !!}
+                            {!! \App\Support\HtmlSanitizer::clean($data->konten) !!}
                         </div>
                     @endif
                 </div>

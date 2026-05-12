@@ -87,7 +87,15 @@ class PermissionSeeder extends Seeder
                 'manage-announcements',
                 'moderate-class-forum',
                 'view-class-surveys',
-                'access-admin',
+            ])->pluck('id')->all(),
+            'instruktur' => Permission::whereIn('name', [
+                'manage-classes',
+                'manage-sessions',
+                'manage-assignments',
+                'grade-submissions',
+                'manage-announcements',
+                'moderate-class-forum',
+                'view-class-surveys',
             ])->pluck('id')->all(),
             'participant' => Permission::whereIn('name', [
                 'access-alumni-forum',

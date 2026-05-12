@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TrainingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Support\HtmlSanitizer;
 
 class TrainingServiceController extends Controller
 {
@@ -83,7 +84,7 @@ class TrainingServiceController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'fasilitas' => 'nullable|string',
@@ -92,6 +93,14 @@ class TrainingServiceController extends Controller
             'gambar' => 'nullable|image|max:2048',
             'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\TrainingService::statuses())),
         ]);
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+        if (! empty($data['fasilitas'])) {
+            $data['fasilitas'] = HtmlSanitizer::clean($data['fasilitas']);
+        }
+
+        return $data;
     }
 
     private function applyWorkflow(Request $request, array &$data, ?TrainingService $service = null): void

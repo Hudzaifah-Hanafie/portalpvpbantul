@@ -107,7 +107,7 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Link Pendaftaran</label>
+                <label class="form-label">Tautan Pendaftaran</label>
                 <input
                     type="url"
                     name="pendaftaran_link"

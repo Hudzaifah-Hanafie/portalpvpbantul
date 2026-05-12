@@ -10,12 +10,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h4 class="mb-0">Laporan Survey Instance</h4>
+        <h4 class="mb-0">Laporan Survei Instans</h4>
         <small class="text-muted">{{ $survey_instance->survey->title ?? '-' }} | {{ $survey_instance->course->title ?? '-' }} | {{ $survey_instance->instructor->name ?? '-' }}</small>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.survey-instance.export.aggregates', $survey_instance->id) . ($filterQuery ? '?' . $filterQuery : '') }}" class="btn btn-outline-primary btn-sm">Export Agregat (CSV)</a>
-        <a href="{{ route('admin.survey-instance.export.responses', $survey_instance->id) . ($filterQuery ? '?' . $filterQuery : '') }}" class="btn btn-outline-primary btn-sm">Export Respons (CSV)</a>
+        <a href="{{ route('admin.survey-instance.export.aggregates', $survey_instance->id) . ($filterQuery ? '?' . $filterQuery : '') }}" class="btn btn-outline-primary btn-sm">Ekspor Agregat (CSV)</a>
+        <a href="{{ route('admin.survey-instance.export.responses', $survey_instance->id) . ($filterQuery ? '?' . $filterQuery : '') }}" class="btn btn-outline-primary btn-sm">Ekspor Respons (CSV)</a>
         <a href="{{ route('admin.survey-instance.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>
 </div>
@@ -35,12 +35,12 @@
             <div>
                 <button class="btn btn-sm btn-outline-primary">Terapkan Filter</button>
                 @if($filterQuery)
-                    <a href="{{ route('admin.survey-instance.report', $survey_instance->id) }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                    <a href="{{ route('admin.survey-instance.report', $survey_instance->id) }}" class="btn btn-sm btn-link text-decoration-none">Atur Ulang</a>
                 @endif
             </div>
         </div>
         <div class="col-md-3 text-muted small">
-            Filter tanggal akan diterapkan ke statistik, daftar respons, dan export.
+            Filter tanggal akan diterapkan ke statistik, daftar respons, dan ekspor.
         </div>
     </div>
 </form>
@@ -65,7 +65,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Rata-rata Numeric</div>
+                <div class="text-muted small">Rata-rata Numerik</div>
                 <div class="fw-bold">{{ $canShowAnalytics && $avgNumeric ? number_format($avgNumeric, 2) : '-' }}</div>
             </div>
         </div>
@@ -73,7 +73,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Threshold Anonimitas</div>
+                <div class="text-muted small">Ambang Anonimitas</div>
                 <div class="fw-bold">{{ $survey_instance->min_responses_threshold }} respons</div>
             </div>
         </div>

@@ -113,7 +113,7 @@
                     $isIframe = \Illuminate\Support\Str::contains($embed, '<iframe');
                 @endphp
                 <div class="ratio ratio-16x9 mb-4">
-                    {!! $isIframe ? $embed : '<iframe src="'.e($embed).'" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' !!}
+                    {!! \App\Support\HtmlSanitizer::cleanEmbed($isIframe ? $embed : '<iframe src="'.e($embed).'" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>') !!}
                 </div>
             @endif
 

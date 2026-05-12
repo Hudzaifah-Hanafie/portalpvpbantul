@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PpidController;
+use App\Http\Controllers\TracerStudyController;
 use App\Http\Controllers\Admin\BeritaController;
 use App\Http\Controllers\Admin\GaleriController;
 use App\Http\Controllers\Admin\OrgStructureController;
@@ -73,19 +76,21 @@ use App\Http\Controllers\Admin\TalentPoolController;
 use App\Http\Controllers\Admin\SchedulePreviewController;
 use App\Http\Controllers\Admin\InterviewSessionController;
 use App\Http\Controllers\Admin\SkillhubSyncController;
+use App\Http\Controllers\Admin\DecisionLetterController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Instructor\InstructorScheduleController;
 use App\Http\Controllers\UserProfileController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
-Route::get('/profil', function () { return view('profil'); })->name('profil');
+Route::view('/profil', 'profil')->name('profil');
 Route::get('/program', [HomeController::class, 'katalogPelatihan'])->name('program');
-Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
-Route::get('/alumni/tracer', [HomeController::class, 'alumniTracerForm'])->name('alumni.tracer');
-Route::post('/alumni/tracer', [HomeController::class, 'storeAlumniTracer'])->name('alumni.tracer.store');
-Route::get('/alumni/profil', [HomeController::class, 'alumniProfileForm'])->name('alumni.profile.complete');
-Route::post('/alumni/profil', [HomeController::class, 'storeAlumniProfile'])->name('alumni.profile.store');
+Route::get('/kontak', [ContactController::class, 'kontak'])->name('kontak');
+Route::get('/alumni/tracer', [TracerStudyController::class, 'alumniTracerForm'])->name('alumni.tracer');
+Route::post('/alumni/tracer', [TracerStudyController::class, 'storeAlumniTracer'])->name('alumni.tracer.store');
+Route::get('/alumni/profil', [TracerStudyController::class, 'alumniProfileForm'])->name('alumni.profile.complete');
+Route::post('/alumni/profil', [TracerStudyController::class, 'storeAlumniProfile'])->name('alumni.profile.store');
 
 Route::middleware(['auth', 'permission:access-alumni-forum'])->group(function () {
     Route::get('/alumni/forum', [AlumniForumController::class, 'index'])->name('alumni.forum.index');
@@ -112,18 +117,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/my/profile/phone', [UserProfileController::class, 'updatePhone'])->name('profile.phone.update');
     Route::post('/pelatihan/jadwal/{schedule}/daftar', [\App\Http\Controllers\TrainingRegistrationController::class, 'register'])
         ->name('training.register');
-    Route::get('/my/applications', [\App\Http\Controllers\CourseParticipantController::class, 'myApplications'])->name('participant.applications');
-    Route::get('/my/assignments', [\App\Http\Controllers\CourseParticipantController::class, 'assignments'])->name('participant.assignments');
-    Route::get('/my/assignments/{assignment}', [\App\Http\Controllers\CourseParticipantController::class, 'showAssignment'])->name('participant.assignments.show');
-    Route::post('/my/assignments/{assignment}/submit', [\App\Http\Controllers\CourseParticipantController::class, 'submitAssignment'])->name('participant.assignments.submit');
-    Route::get('/my/submissions/{submission}/file', [\App\Http\Controllers\CourseParticipantController::class, 'downloadSubmissionFile'])->name('participant.submissions.file');
-    Route::post('/my/sessions/{session}/scan', [\App\Http\Controllers\CourseParticipantController::class, 'scanAttendance'])->name('participant.sessions.scan');
-    Route::post('/my/sessions/{session}/attendance', [\App\Http\Controllers\CourseParticipantController::class, 'markAttendance'])->name('participant.sessions.attendance');
-    Route::post('/my/consent', [\App\Http\Controllers\CourseParticipantController::class, 'consent'])->name('participant.consent');
-    Route::get('/my/classes', [\App\Http\Controllers\CourseParticipantController::class, 'myClasses'])->name('participant.classes');
-    Route::get('/my/progress', [\App\Http\Controllers\CourseParticipantController::class, 'myProgress'])->name('participant.progress');
-    Route::get('/my/classes/{class}/announcements', [\App\Http\Controllers\CourseParticipantController::class, 'classAnnouncements'])->name('participant.class.announcements.index');
-    Route::get('/my/classes/{class}/announcements/{announcement}', [\App\Http\Controllers\CourseParticipantController::class, 'showAnnouncement'])->name('participant.class.announcements.show');
+    Route::get('/my/applications', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'myApplications'])->name('participant.applications');
+    Route::get('/my/assignments', [\App\Http\Controllers\Participant\ParticipantAssignmentController::class, 'index'])->name('participant.assignments');
+    Route::get('/my/assignments/{assignment}', [\App\Http\Controllers\Participant\ParticipantAssignmentController::class, 'show'])->name('participant.assignments.show');
+    Route::post('/my/assignments/{assignment}/submit', [\App\Http\Controllers\Participant\ParticipantAssignmentController::class, 'submit'])->name('participant.assignments.submit')->middleware('throttle:lms-submit');
+    Route::get('/my/submissions/{submission}/file', [\App\Http\Controllers\Participant\ParticipantAssignmentController::class, 'downloadFile'])->name('participant.submissions.file');
+    Route::get('/my', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'dashboard'])->name('participant.dashboard');
+    Route::post('/my/sessions/{session}/scan', [\App\Http\Controllers\Participant\ParticipantAttendanceController::class, 'scan'])->name('participant.sessions.scan');
+    Route::get('/my/sessions/{session}/attendance', [\App\Http\Controllers\Participant\ParticipantAttendanceController::class, 'form'])->name('participant.sessions.attendance.form');
+    Route::post('/my/sessions/{session}/attendance', [\App\Http\Controllers\Participant\ParticipantAttendanceController::class, 'mark'])->name('participant.sessions.attendance');
+    Route::get('/my/attendance', [\App\Http\Controllers\Participant\ParticipantAttendanceController::class, 'index'])->name('participant.sessions.index');
+    Route::post('/my/consent', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'consent'])->name('participant.consent');
+    Route::get('/my/classes', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'myClasses'])->name('participant.classes');
+    Route::get('/my/classes/{class}', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'showClass'])->name('participant.class.show');
+    Route::get('/my/classes/{class}/materials/{material}', [\App\Http\Controllers\LearningPathController::class, 'showMaterial'])->name('participant.materials.show');
+    Route::post('/my/materials/{material}/complete', [\App\Http\Controllers\LearningPathController::class, 'markComplete'])->name('participant.materials.complete');
+    Route::post('/my/materials/{material}/discussion', [\App\Http\Controllers\LearningPathController::class, 'storeDiscussion'])->name('participant.materials.discussion.store');
+    Route::get('/my/gamification/leaderboard', [\App\Http\Controllers\GamificationController::class, 'leaderboard'])->name('participant.gamification.leaderboard');
+    Route::get('/my/progress', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'myProgress'])->name('participant.progress');
+    Route::get('/my/classes/{class}/announcements', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'classAnnouncements'])->name('participant.class.announcements.index');
+    Route::get('/my/classes/{class}/announcements/{announcement}', [\App\Http\Controllers\Participant\ParticipantClassController::class, 'showAnnouncement'])->name('participant.class.announcements.show');
     Route::get('/my/classes/{class}/forum', [\App\Http\Controllers\CourseForumController::class, 'index'])->name('participant.class.forum.index');
     Route::post('/my/classes/{class}/forum', [\App\Http\Controllers\CourseForumController::class, 'storeTopic'])->name('participant.class.forum.store')->middleware('throttle:12,1');
     Route::get('/my/classes/{class}/forum/{topic}', [\App\Http\Controllers\CourseForumController::class, 'show'])->name('participant.class.forum.show');
@@ -178,11 +191,12 @@ Route::get('/invite/{token}', [InvitationAcceptanceController::class, 'show'])->
 Route::post('/invite/{token}', [InvitationAcceptanceController::class, 'accept'])->name('invite.accept')->middleware('guest');
 
 
+Route::get('/admin', DashboardController::class)
+    ->name('admin.dashboard')
+    ->middleware(['auth', 'permission:access-admin']);
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-admin'])->group(function () {
     
-    Route::get('/', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
-
     Route::resource('berita', BeritaController::class);
     Route::patch('berita/{berita}/submit', [BeritaController::class, 'submit'])->name('berita.submit');
     Route::patch('berita/{berita}/approve', [BeritaController::class, 'approve'])->name('berita.approve')->middleware('permission:approve-content');
@@ -253,6 +267,43 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('survey-instance-dashboard', [SurveyInstanceController::class, 'dashboard'])->name('survey-instance.dashboard')->middleware('permission:manage-surveys');
     Route::resource('course-class', CourseClassController::class)->except(['show']);
     Route::resource('course-session', CourseSessionController::class);
+    Route::resource('course-module', \App\Http\Controllers\Admin\CourseModuleController::class)->except(['show']);
+    Route::resource('kejuruan-modules', \App\Http\Controllers\Admin\KejuruanModuleController::class)
+        ->except(['show'])
+        ->middleware('permission:manage-classes');
+    Route::resource('course-curriculum', \App\Http\Controllers\Admin\CourseCurriculumController::class)
+        ->except(['show'])
+        ->middleware(['permission:manage-classes', 'role:admin,superadmin']);
+    Route::resource('course-curriculum-unit', \App\Http\Controllers\Admin\CourseCurriculumUnitController::class)
+        ->except(['show'])
+        ->middleware(['permission:manage-classes', 'role:admin,superadmin']);
+    Route::resource('course-material', \App\Http\Controllers\Admin\CourseMaterialController::class)->except(['show']);
+    Route::resource('task-letter', \App\Http\Controllers\Admin\TaskLetterController::class);
+    Route::get('task-letter/{task_letter}/print', [\App\Http\Controllers\Admin\TaskLetterController::class, 'print'])
+        ->name('task-letter.print');
+    Route::post('notifications/read-all', [AdminNotificationController::class, 'markAllRead'])
+        ->name('notifications.read-all');
+    Route::post('notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])
+        ->name('notifications.read');
+    Route::resource('decision-letter', DecisionLetterController::class)->except(['destroy']);
+    Route::get('decision-letter/preview', [DecisionLetterController::class, 'preview'])
+        ->name('decision-letter.preview');
+    Route::get('decision-letter/{decision_letter}/print', [DecisionLetterController::class, 'print'])
+        ->name('decision-letter.print');
+    Route::get('decision-letter/{decision_letter}/pdf', [DecisionLetterController::class, 'pdf'])
+        ->name('decision-letter.pdf');
+    Route::get('course-nominative', [\App\Http\Controllers\Admin\CourseNominativeController::class, 'index'])
+        ->name('course-nominative.index')
+        ->middleware('role:admin,superadmin');
+    Route::get('course-nominative/print', [\App\Http\Controllers\Admin\CourseNominativeController::class, 'print'])
+        ->name('course-nominative.print')
+        ->middleware('role:admin,superadmin');
+    Route::get('course-nominative/export', [\App\Http\Controllers\Admin\CourseNominativeController::class, 'export'])
+        ->name('course-nominative.export')
+        ->middleware('role:admin,superadmin');
+    Route::get('course-nominative/pdf', [\App\Http\Controllers\Admin\CourseNominativeController::class, 'pdf'])
+        ->name('course-nominative.pdf')
+        ->middleware('role:admin,superadmin');
     Route::resource('course-assignment', CourseAssignmentController::class)->except(['show']);
     Route::get('course-assignment/{course_assignment}/export', [CourseAssignmentController::class, 'exportScores'])->name('course-assignment.export');
     Route::resource('course-attendance', CourseAttendanceController::class)->except(['show']);
@@ -268,16 +319,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('course-submission/export/csv', [CourseSubmissionController::class, 'exportCsv'])->name('course-submission.export.csv');
     Route::get('course-enrollment/ranking', [CourseEnrollmentController::class, 'ranking'])->name('course-enrollment.ranking')->middleware('permission:manage-enrollment');
     Route::post('course-enrollment/ranking', [CourseEnrollmentController::class, 'applyRanking'])->name('course-enrollment.ranking.apply')->middleware('permission:manage-enrollment');
+    Route::post('course-enrollment/bulk', [CourseEnrollmentController::class, 'bulkUpdate'])->name('course-enrollment.bulk')->middleware('permission:manage-enrollment');
     Route::resource('course-enrollment', CourseEnrollmentController::class)->except(['show'])->middleware('permission:manage-enrollment');
     Route::patch('course-enrollment/{course_enrollment}/verify', [CourseEnrollmentController::class, 'verify'])->name('course-enrollment.verify')->middleware('permission:manage-enrollment');
     Route::get('course-enrollment-import', [CourseEnrollmentImportController::class, 'create'])->name('course-enrollment.import')->middleware('permission:manage-enrollment');
     Route::post('course-enrollment-import', [CourseEnrollmentImportController::class, 'store'])->name('course-enrollment.import.store')->middleware('permission:manage-enrollment');
     Route::resource('course-announcement', CourseAnnouncementController::class)->except(['show']);
+    Route::get('reports/learning-summary', [\App\Http\Controllers\Admin\LearningReportController::class, 'index'])
+        ->name('reports.learning-summary')
+        ->middleware('permission:manage-enrollment');
+    Route::get('reports/kejuruan-modules', [\App\Http\Controllers\Admin\KejuruanModuleReportController::class, 'index'])
+        ->name('reports.kejuruan-modules')
+        ->middleware('permission:manage-classes');
+    Route::get('reports/training-documentations', [\App\Http\Controllers\Admin\TrainingDocumentationReportController::class, 'index'])
+        ->name('reports.training-documentations')
+        ->middleware('permission:manage-classes');
     Route::get('course-forum-reports', [CourseForumReportController::class, 'index'])->name('course-forum-reports.index')->middleware('permission:moderate-class-forum');
     Route::post('course-forum-reports/{course_forum_report}/resolve', [CourseForumReportController::class, 'resolve'])->name('course-forum-reports.resolve')->middleware('permission:moderate-class-forum');
     Route::post('course-forum-reports/{course_forum_report}/delete-post', [CourseForumReportController::class, 'deletePost'])->name('course-forum-reports.delete-post')->middleware('permission:moderate-class-forum');
     Route::post('course-forum-reports/{course_forum_report}/mute', [CourseForumReportController::class, 'mute'])->name('course-forum-reports.mute')->middleware('permission:moderate-class-forum');
     Route::get('course-progress', [CourseProgressController::class, 'index'])->name('course-progress.index');
+    Route::get('course-gradebook', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'index'])->name('course-gradebook.index');
+    Route::get('course-gradebook/export/excel', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'exportExcel'])->name('course-gradebook.export-excel');
+    Route::post('course-gradebook/{id}/inline', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'updateInline'])->name('course-gradebook.inline-update');
     Route::resource('profile', ProfileController::class)->only(['index', 'edit', 'update']);
     Route::get('settings/portal', [SiteSettingController::class, 'portal'])->name('settings.portal');
     Route::get('settings/site', [SiteSettingController::class, 'edit'])->name('settings.site');
@@ -296,6 +360,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::delete('activity-logs/{activity_log}', [ActivityLogController::class, 'destroy'])->name('activity-logs.destroy')->middleware('permission:manage-audit');
     Route::delete('activity-logs', [ActivityLogController::class, 'clear'])->name('activity-logs.clear')->middleware('permission:manage-audit');
     Route::get('branding-kpi/{branding_kpi}/download', [BrandingKpiController::class, 'download'])->name('branding-kpi.download');
+    Route::get('branding-kpi/integrations', [BrandingKpiController::class, 'integrations'])->name('branding-kpi.integrations');
+    Route::post('branding-kpi/settings', [BrandingKpiController::class, 'updateSettings'])->name('branding-kpi.settings');
+    Route::post('branding-kpi/sync', [BrandingKpiController::class, 'sync'])->name('branding-kpi.sync');
     Route::resource('branding-kpi', BrandingKpiController::class);
 
     Route::middleware('permission:moderate-alumni-forum')->group(function () {
@@ -317,18 +384,99 @@ Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
     ->name('impersonate.stop')
     ->middleware('auth');
 
+Route::get('/lms/search', \App\Http\Controllers\LmsSearchController::class)
+    ->name('lms.search')
+    ->middleware(['auth', 'role:admin,superadmin,instructor,instruktur']);
+
 Route::prefix('instruktur')
     ->name('instructor.')
-    ->middleware(['auth'])
+    ->middleware(['auth', 'role:instructor,instruktur'])
     ->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\Instructor\InstructorDashboardController::class, 'index'])->name('dashboard');
+        Route::post('sessions', [\App\Http\Controllers\Instructor\InstructorDashboardController::class, 'storeSession'])->name('sessions.store');
+        Route::post('announcements', [\App\Http\Controllers\Instructor\InstructorDashboardController::class, 'storeAnnouncement'])->name('announcements.store');
         Route::get('schedules/{schedule}/preview', [InstructorScheduleController::class, 'preview'])->name('schedules.preview');
         Route::resource('schedules', InstructorScheduleController::class)->parameters(['schedules' => 'schedule'])->except(['show']);
+
+        Route::prefix('lms')->name('lms.')->group(function () {
+            Route::resource('course-class', \App\Http\Controllers\Admin\CourseClassController::class)
+                ->except(['show'])
+                ->middleware('permission:manage-classes');
+            Route::resource('course-session', \App\Http\Controllers\Admin\CourseSessionController::class)
+                ->middleware('permission:manage-sessions');
+            Route::get('course-session/{course_session}/qr', [\App\Http\Controllers\Admin\CourseSessionController::class, 'qr'])
+                ->name('course-session.qr')
+                ->middleware('permission:manage-sessions');
+            Route::get('course-session/{course_session}/cards', [\App\Http\Controllers\Admin\CourseSessionController::class, 'cards'])
+                ->name('course-session.cards')
+                ->middleware('permission:manage-sessions');
+        Route::resource('course-module', \App\Http\Controllers\Admin\CourseModuleController::class)
+            ->except(['show'])
+            ->middleware('permission:manage-classes');
+        Route::resource('kejuruan-modules', \App\Http\Controllers\Instructor\KejuruanModuleController::class)
+            ->except(['show'])
+            ->middleware('permission:manage-classes');
+        Route::resource('training-documentations', \App\Http\Controllers\Instructor\TrainingDocumentationController::class)
+            ->except(['show'])
+            ->middleware('permission:manage-classes');
+            Route::resource('course-material', \App\Http\Controllers\Admin\CourseMaterialController::class)
+                ->except(['show'])
+                ->middleware('permission:manage-classes');
+            Route::resource('task-letter', \App\Http\Controllers\Admin\TaskLetterController::class)
+                ->middleware('permission:manage-classes');
+            Route::get('task-letter/{task_letter}/print', [\App\Http\Controllers\Admin\TaskLetterController::class, 'print'])
+                ->name('task-letter.print')
+                ->middleware('permission:manage-classes');
+            Route::resource('course-assignment', \App\Http\Controllers\Admin\CourseAssignmentController::class)
+                ->except(['show'])
+                ->middleware('permission:manage-assignments');
+            Route::get('course-assignment/{course_assignment}/export', [\App\Http\Controllers\Admin\CourseAssignmentController::class, 'exportScores'])
+                ->name('course-assignment.export')
+                ->middleware('permission:manage-assignments');
+            Route::resource('course-attendance', \App\Http\Controllers\Admin\CourseAttendanceController::class)
+                ->except(['show'])
+                ->middleware('permission:manage-sessions');
+            Route::get('course-attendance/export/csv', [\App\Http\Controllers\Admin\CourseAttendanceController::class, 'exportCsv'])
+                ->name('course-attendance.export.csv')
+                ->middleware('permission:manage-sessions');
+            Route::resource('course-submission', \App\Http\Controllers\Admin\CourseSubmissionController::class)
+                ->only(['index', 'edit', 'update', 'destroy'])
+                ->middleware('permission:grade-submissions');
+            Route::get('course-submission/export/csv', [\App\Http\Controllers\Admin\CourseSubmissionController::class, 'exportCsv'])
+                ->name('course-submission.export.csv')
+                ->middleware('permission:grade-submissions');
+            Route::resource('course-announcement', \App\Http\Controllers\Admin\CourseAnnouncementController::class)
+                ->except(['show'])
+                ->middleware('permission:manage-announcements');
+            Route::get('course-progress', [\App\Http\Controllers\Admin\CourseProgressController::class, 'index'])
+                ->name('course-progress.index')
+                ->middleware('permission:manage-classes');
+            Route::get('course-gradebook', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'index'])
+                ->name('course-gradebook.index')
+                ->middleware('permission:manage-classes');
+            Route::get('course-gradebook/export/excel', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'exportExcel'])
+                ->name('course-gradebook.export-excel')
+                ->middleware('permission:manage-classes');
+            Route::post('course-gradebook/{id}/inline', [\App\Http\Controllers\Admin\CourseGradebookController::class, 'updateInline'])
+                ->name('course-gradebook.inline-update')
+                ->middleware('permission:manage-classes');
+            Route::get('course-forum-reports', [\App\Http\Controllers\Admin\CourseForumReportController::class, 'index'])
+                ->name('course-forum-reports.index')
+                ->middleware('permission:moderate-class-forum');
+            Route::post('course-forum-reports/{course_forum_report}/resolve', [\App\Http\Controllers\Admin\CourseForumReportController::class, 'resolve'])
+                ->name('course-forum-reports.resolve')
+                ->middleware('permission:moderate-class-forum');
+            Route::post('course-forum-reports/{course_forum_report}/delete-post', [\App\Http\Controllers\Admin\CourseForumReportController::class, 'deletePost'])
+                ->name('course-forum-reports.delete-post')
+                ->middleware('permission:moderate-class-forum');
+            Route::post('course-forum-reports/{course_forum_report}/mute', [\App\Http\Controllers\Admin\CourseForumReportController::class, 'mute'])
+                ->name('course-forum-reports.mute')
+                ->middleware('permission:moderate-class-forum');
+        });
     });
 
-Route::get('/profil/sejarah', [HomeController::class, 'sejarah'])->name('profil.sejarah');
 Route::get('/profil/struktur-organisasi', [HomeController::class, 'struktur'])->name('profil.struktur');
-Route::get('/kontak', [App\Http\Controllers\HomeController::class, 'kontak'])->name('kontak');
-Route::post('/kontak', [App\Http\Controllers\HomeController::class, 'storeKontak'])->name('kontak.store');
+Route::post('/kontak', [ContactController::class, 'storeKontak'])->name('kontak.store');
 
 Route::get('/pencarian', [HomeController::class, 'search'])->name('search');
 Route::get('/pelatihan/katalog', [HomeController::class, 'katalogPelatihan'])->name('pelatihan.katalog');
@@ -336,8 +484,8 @@ Route::get('/pelatihan/jadwal', [HomeController::class, 'jadwalPelatihan'])->nam
 Route::get('/pelatihan/pemberdayaan', [HomeController::class, 'pemberdayaan'])->name('pelatihan.pemberdayaan');
 Route::get('/pelatihan/produktivitas', [HomeController::class, 'produktivitas'])->name('pelatihan.produktivitas');
 Route::get('/sertifikasi', [HomeController::class, 'sertifikasi'])->name('sertifikasi');
-Route::get('/ppid', [HomeController::class, 'ppid'])->name('ppid');
-Route::post('/ppid/permohonan', [HomeController::class, 'storePpidRequest'])
+Route::get('/ppid', [PpidController::class, 'ppid'])->name('ppid');
+Route::post('/ppid/permohonan', [PpidController::class, 'storePpidRequest'])
     ->name('ppid.store')
     ->middleware('throttle:5,1');
 Route::get('/survei/{survey:slug}', [SurveyResponseController::class, 'show'])->name('surveys.show');

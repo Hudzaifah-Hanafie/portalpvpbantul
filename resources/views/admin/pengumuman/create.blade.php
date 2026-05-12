@@ -49,7 +49,7 @@
                 <label class="form-label">File Lampiran (PDF/DOC) - <span class="text-muted fw-normal">Opsional</span></label>
                 <input type="file" name="file_download" class="form-control @error('file_download') is-invalid @enderror" accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                 @error('file_download') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                <small class="text-muted">Upload file hasil seleksi atau jadwal jika ada.</small>
+                <small class="text-muted">Unggah file hasil seleksi atau jadwal jika ada.</small>
             </div>
 
             @include('admin.partials.seo-tools', ['model' => null, 'baseUrl' => url('/pengumuman'), 'excerptField' => '[name=isi]'])

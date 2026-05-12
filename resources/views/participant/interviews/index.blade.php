@@ -42,7 +42,7 @@
         </div>
     @empty
         <div class="col-12">
-            <div class="alert alert-info">Belum ada jadwal wawancara untuk Anda.</div>
+            <div class="alert alert-info alert-modern">Belum ada jadwal wawancara untuk Anda.</div>
         </div>
     @endforelse
 </div>

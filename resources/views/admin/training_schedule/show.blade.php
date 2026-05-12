@@ -50,7 +50,7 @@
                         <dd class="col-7 fw-semibold">{{ $schedule->batch_id ?? '-' }}</dd>
                         <dt class="col-5 text-muted">Bulan/Tahun</dt>
                         <dd class="col-7 fw-semibold">{{ $schedule->bulan ?? '-' }} {{ $schedule->tahun }}</dd>
-                        <dt class="col-5 text-muted">Link Daftar</dt>
+                        <dt class="col-5 text-muted">Tautan Daftar</dt>
                         <dd class="col-7">
                             @if($schedule->pendaftaran_link)
                                 <a href="{{ $schedule->pendaftaran_link }}" target="_blank" class="text-decoration-none">{{ $schedule->pendaftaran_link }}</a>

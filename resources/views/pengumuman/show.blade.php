@@ -16,7 +16,7 @@
                             @endif
                         </div>
                         <article class="content mb-4" style="line-height:1.7;">
-                            {!! $announcement->isi !!}
+                            {!! \App\Support\HtmlSanitizer::clean($announcement->isi) !!}
                         </article>
                         <div class="alert alert-info border-0 shadow-sm rounded-4 mt-4 d-flex justify-content-between align-items-center">
                             <div>

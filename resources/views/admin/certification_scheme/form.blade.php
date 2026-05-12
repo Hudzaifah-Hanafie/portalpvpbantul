@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>{{ $item->exists ? 'Edit' : 'Tambah' }} Skema Sertifikasi</h3>
+    <h3>{{ $item->exists ? 'Ubah' : 'Tambah' }} Skema Sertifikasi</h3>
     <a href="{{ route('admin.certification-scheme.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
@@ -55,7 +55,7 @@
                     @error('cta_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Link Tombol</label>
+                    <label class="form-label">Tautan Tombol</label>
                     <input type="url" name="cta_url" class="form-control @error('cta_url') is-invalid @enderror" value="{{ old('cta_url', $item->cta_url) }}" placeholder="https://...">
                     @error('cta_url') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

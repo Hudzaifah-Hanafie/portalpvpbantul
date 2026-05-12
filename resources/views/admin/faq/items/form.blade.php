@@ -8,7 +8,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">{{ $isEdit ? 'Edit' : 'Tambah' }} FAQ</h4>
+        <h4 class="mb-0">{{ $isEdit ? 'Ubah' : 'Tambah' }} FAQ</h4>
         <small class="text-muted">Isi pertanyaan, jawaban, serta kategori agar tampil rapi pada UI.</small>
     </div>
     <a href="{{ route('admin.faq-item.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
@@ -78,7 +78,7 @@
     </div>
 
     <div class="text-end mt-4">
-        <button class="btn btn-primary px-4">{{ $isEdit ? 'Update' : 'Simpan' }}</button>
+        <button class="btn btn-primary px-4">{{ $isEdit ? 'Perbarui' : 'Simpan' }}</button>
     </div>
 </form>
 @endsection

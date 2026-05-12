@@ -40,7 +40,7 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.ppid-highlight.edit', $highlight) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{{ route('admin.ppid-highlight.edit', $highlight) }}" class="btn btn-sm btn-warning">Ubah</a>
                             <form action="{{ route('admin.ppid-highlight.destroy', $highlight) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus highlight ini?')">
                                 @csrf
                                 @method('DELETE')

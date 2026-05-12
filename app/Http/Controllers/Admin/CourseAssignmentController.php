@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\RestrictsToInstructorClasses;
 use App\Models\CourseAssignment;
 use App\Models\CourseClass;
 use App\Models\CourseSubmission;
@@ -12,6 +13,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CourseAssignmentController extends Controller
 {
+    use RestrictsToInstructorClasses;
+
     public function __construct(private ActivityLogger $logger)
     {
     }
@@ -19,10 +22,15 @@ class CourseAssignmentController extends Controller
     public function index()
     {
         $statusOptions = CourseAssignment::statuses();
+        $assessmentOptions = $this->assessmentOptions();
         $statusFilter = request('status');
         $classFilter = request('class_id');
 
-        $query = CourseAssignment::with('course')->orderBy('due_at');
+        $query = CourseAssignment::with(['course', 'module'])->orderBy('due_at');
+        if ($this->isInstructorUser(request()->user())) {
+            $classIds = CourseClass::where('instructor_id', request()->user()->id)->pluck('id');
+            $query->whereIn('course_class_id', $classIds);
+        }
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
         }
@@ -31,19 +39,28 @@ class CourseAssignmentController extends Controller
         }
 
         $assignments = $query->paginate(20)->withQueryString();
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
 
-        return view('admin.course_assignment.index', compact('assignments', 'statusOptions', 'statusFilter', 'classes', 'classFilter'));
+        return view('admin.course_assignment.index', compact('assignments', 'statusOptions', 'statusFilter', 'classes', 'classFilter', 'assessmentOptions'));
     }
 
     public function create()
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $classes = $this->scopedClassOptions(request()->user());
+        $modules = $this->scopedModuleOptions(request()->user());
+        $assessmentOptions = $this->assessmentOptions();
 
         return view('admin.course_assignment.form', [
-            'assignment' => new CourseAssignment(['type' => 'essay', 'is_active' => true]),
+            'assignment' => new CourseAssignment([
+                'type' => 'essay',
+                'quiz_scope' => 'class',
+                'assessment_type' => 'regular',
+                'is_active' => true,
+            ]),
             'classes' => $classes,
-            'action' => route('admin.course-assignment.store'),
+            'modules' => $modules,
+            'assessmentOptions' => $assessmentOptions,
+            'action' => route($this->getRoutePrefix() . 'course-assignment.store'),
             'method' => 'POST',
         ]);
     }
@@ -51,6 +68,7 @@ class CourseAssignmentController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $data['created_by'] = $request->user()->id;
         $this->applyWorkflow($request, $data);
         $assignment = CourseAssignment::create($data);
@@ -62,16 +80,21 @@ class CourseAssignmentController extends Controller
             $assignment
         );
 
-        return redirect()->route('admin.course-assignment.index')->with('success', 'Tugas berhasil ditambahkan.');
+        return redirect()->route($this->getRoutePrefix() . 'course-assignment.index')->with('success', 'Tugas berhasil ditambahkan.');
     }
 
     public function edit(CourseAssignment $course_assignment)
     {
-        $classes = CourseClass::orderBy('title')->pluck('title', 'id');
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_assignment->course_class_id);
+        $classes = $this->scopedClassOptions(request()->user());
+        $modules = $this->scopedModuleOptions(request()->user());
+        $assessmentOptions = $this->assessmentOptions();
         return view('admin.course_assignment.form', [
             'assignment' => $course_assignment,
             'classes' => $classes,
-            'action' => route('admin.course-assignment.update', $course_assignment->id),
+            'modules' => $modules,
+            'assessmentOptions' => $assessmentOptions,
+            'action' => route($this->getRoutePrefix() . 'course-assignment.update', $course_assignment->id),
             'method' => 'PUT',
         ]);
     }
@@ -79,6 +102,8 @@ class CourseAssignmentController extends Controller
     public function update(Request $request, CourseAssignment $course_assignment)
     {
         $data = $this->validateData($request);
+        $this->ensureInstructorOwnsClassId($request->user(), $course_assignment->course_class_id);
+        $this->ensureInstructorOwnsClassId($request->user(), $data['course_class_id']);
         $this->applyWorkflow($request, $data, $course_assignment);
         $course_assignment->update($data);
 
@@ -89,11 +114,12 @@ class CourseAssignmentController extends Controller
             $course_assignment
         );
 
-        return redirect()->route('admin.course-assignment.index')->with('success', 'Tugas diperbarui.');
+        return redirect()->route($this->getRoutePrefix() . 'course-assignment.index')->with('success', 'Tugas diperbarui.');
     }
 
     public function destroy(CourseAssignment $course_assignment)
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_assignment->course_class_id);
         $this->logger->log(
             request()->user(),
             'course.assignment.deleted',
@@ -102,11 +128,12 @@ class CourseAssignmentController extends Controller
         );
         $course_assignment->delete();
 
-        return redirect()->route('admin.course-assignment.index')->with('success', 'Tugas dihapus.');
+        return redirect()->route($this->getRoutePrefix() . 'course-assignment.index')->with('success', 'Tugas dihapus.');
     }
 
     public function exportScores(CourseAssignment $course_assignment): StreamedResponse
     {
+        $this->ensureInstructorOwnsClassId(request()->user(), $course_assignment->course_class_id);
         $filename = 'scores-' . $course_assignment->id . '.csv';
         $submissions = CourseSubmission::with('user')
             ->where('course_assignment_id', $course_assignment->id)
@@ -142,9 +169,12 @@ class CourseAssignmentController extends Controller
     {
         $data = $request->validate([
             'course_class_id' => 'required|exists:course_classes,id',
+            'course_module_id' => 'nullable|exists:course_modules,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:essay,file,quiz',
+            'quiz_scope' => 'nullable|in:class,selection',
+            'assessment_type' => 'nullable|in:regular,module_quiz,final_exam,final_project',
             'due_at' => 'nullable|date',
             'weight' => 'nullable|integer|min:0|max:100',
             'max_score' => 'nullable|integer|min:1|max:1000',
@@ -187,11 +217,31 @@ class CourseAssignmentController extends Controller
             $data['rubric'] = null;
         }
 
+        $data['assessment_type'] = $data['assessment_type'] ?? 'regular';
+
+        if ($data['assessment_type'] === 'module_quiz' && empty($data['course_module_id'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'course_module_id' => 'Bab wajib dipilih untuk Quiz Akhir Bab.',
+            ]);
+        }
+        if ($data['assessment_type'] !== 'module_quiz') {
+            $data['course_module_id'] = null;
+        }
+
+        if (in_array($data['assessment_type'], ['module_quiz', 'final_exam'], true)) {
+            $data['type'] = 'quiz';
+        }
+        if ($data['assessment_type'] === 'final_project') {
+            $data['type'] = $data['type'] === 'essay' ? 'essay' : 'file';
+        }
+
         if (($data['type'] ?? null) === 'quiz') {
+            $data['quiz_scope'] = $data['quiz_scope'] ?? 'class';
             $data['quiz_schema'] = $this->parseQuizSchema($data['quiz_schema'] ?? '');
             $data['quiz_settings'] = $this->parseQuizSettings($data['quiz_settings'] ?? '');
             $data['max_score'] = collect($data['quiz_schema'])->sum(fn ($q) => (float) ($q['score'] ?? 0)) ?: $data['max_score'];
         } else {
+            $data['quiz_scope'] = null;
             $data['quiz_schema'] = null;
             $data['quiz_settings'] = null;
         }
@@ -200,6 +250,16 @@ class CourseAssignmentController extends Controller
         $data['auto_submit'] = $request->boolean('auto_submit');
 
         return $data;
+    }
+
+    private function assessmentOptions(): array
+    {
+        return [
+            'regular' => 'Tugas/Quiz Reguler',
+            'module_quiz' => 'Quiz Akhir Bab',
+            'final_exam' => 'Ujian Final',
+            'final_project' => 'Proyek Akhir',
+        ];
     }
 
     private function applyWorkflow(Request $request, array &$data, ?CourseAssignment $assignment = null): void

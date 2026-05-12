@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogger;
+use App\Support\HtmlSanitizer;
 
 class JobVacancyController extends Controller
 {
@@ -139,6 +140,13 @@ class JobVacancyController extends Controller
             if (blank($data[$field] ?? null)) {
                 $data[$field] = $value;
             }
+        }
+
+        if (! empty($data['deskripsi'])) {
+            $data['deskripsi'] = HtmlSanitizer::clean($data['deskripsi']);
+        }
+        if (! empty($data['kualifikasi'])) {
+            $data['kualifikasi'] = HtmlSanitizer::clean($data['kualifikasi']);
         }
 
         $data['is_active'] = $request->boolean('is_active');

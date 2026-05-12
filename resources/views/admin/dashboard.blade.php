@@ -1,6 +1,54 @@
 @extends('layouts.admin')
 
 @section('content')
+@if(isset($trainingMetrics))
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h5 class="mb-0">Ringkasan LMS</h5>
+                <small class="text-muted">Snapshot cepat untuk kelas dan penilaian.</small>
+            </div>
+            <a href="{{ route((request()->routeIs('instructor.*') || request()->routeIs('*.lms.*') ? 'instructor.lms.course-class.index' : 'admin.course-class.index')) }}" class="btn btn-sm btn-outline-primary">Kelola Kelas</a>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100">
+                        <div class="text-muted small">Total Kelas</div>
+                        <div class="fs-4 fw-bold">{{ $trainingMetrics['classes_total'] ?? 0 }}</div>
+                        <small class="text-muted">Aktif: {{ $trainingMetrics['classes_active'] ?? 0 }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100">
+                        <div class="text-muted small">Peserta Aktif</div>
+                        <div class="fs-4 fw-bold">{{ $trainingMetrics['enrollments_active'] ?? 0 }}</div>
+                        <small class="text-muted">Pending admin: {{ $trainingMetrics['enrollments_pending'] ?? 0 }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100">
+                        <div class="text-muted small">Submission Menunggu</div>
+                        <div class="fs-4 fw-bold">{{ $trainingMetrics['pending_submissions'] ?? 0 }}</div>
+                        <small class="text-muted">Butuh penilaian</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100">
+                        <div class="text-muted small">Sesi Terdekat</div>
+                        @if(!empty($upcomingSessions) && $upcomingSessions->isNotEmpty())
+                            <div class="fw-semibold">{{ $upcomingSessions->first()->course->title ?? 'Sesi' }}</div>
+                            <small class="text-muted">{{ $upcomingSessions->first()->start_at?->format('d M Y H:i') }}</small>
+                        @else
+                            <div class="text-muted">Belum ada jadwal</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="row g-3 mb-4 dashboard-metrics row-cols-1 row-cols-md-2 row-cols-xl-3">
     @php
         $metricCards = [
@@ -9,7 +57,7 @@
             ['label' => 'Pengumuman Aktif', 'value' => $metrics['pengumuman'], 'icon' => 'fa-bullhorn', 'theme' => 'warning'],
             ['label' => 'Pesan Masuk', 'value' => $metrics['pesan'], 'icon' => 'fa-envelope-open-text', 'theme' => 'danger', 'subtext' => $pesanUnread . ' belum diproses'],
             ['label' => 'Total Kunjungan', 'value' => number_format($metrics['visits']), 'icon' => 'fa-chart-line', 'theme' => 'info', 'subtext' => '7 hari terakhir: ' . $visitTrend->sum('total')],
-            ['label' => 'Data Tracer Alumni', 'value' => $metrics['alumniTracer'], 'icon' => 'fa-user-graduate', 'theme' => 'secondary', 'subtext' => 'Update real-time dari form tracer'],
+            ['label' => 'Data Tracer Alumni', 'value' => $metrics['alumniTracer'], 'icon' => 'fa-user-graduate', 'theme' => 'secondary', 'subtext' => 'Perbarui real-time dari form tracer'],
         ];
     @endphp
     @foreach($metricCards as $card)
@@ -195,10 +243,10 @@
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {!! json_encode($trendLabels->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'))) !!},
+                labels: @json($trendLabels->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'))),
                 datasets: [{
                     label: 'Berita',
-                    data: {!! json_encode($beritaSeries) !!},
+                    data: @json($beritaSeries),
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.15)',
                     tension: 0.4,
@@ -206,7 +254,7 @@
                 },
                 {
                     label: 'Kunjungan',
-                    data: {!! json_encode($visitSeries) !!},
+                    data: @json($visitSeries),
                     borderColor: '#16a34a',
                     backgroundColor: 'rgba(22, 163, 74, 0.15)',
                     tension: 0.4,
@@ -224,7 +272,7 @@
         new Chart(cohortCtx, {
             type: 'bar',
             data: {
-                labels: {!! $cohortYears->map(fn($year) => (string) $year)->values()->toJson() !!},
+                labels: @json($cohortYears->map(fn($year) => (string) $year)->values()),
                 datasets: [
                     @php
                         $statusColors = [
@@ -238,7 +286,7 @@
                     @foreach($cohortStatusMap as $key => $label)
                         {
                             label: '{{ $label }}',
-                            data: {!! $cohortDatasets[$key]->values()->toJson() !!},
+                            data: @json($cohortDatasets[$key]->values()),
                             backgroundColor: '{{ $statusColors[$key] ?? 'rgba(99,102,241,0.8)' }}',
                             stack: 'cohort'
                         },
@@ -258,10 +306,10 @@
         new Chart(funnelCtx, {
             type: 'bar',
             data: {
-                labels: {!! json_encode(array_keys($funnelStages)) !!},
+                labels: @json(array_keys($funnelStages)),
                 datasets: [{
                     label: 'Total',
-                    data: {!! json_encode(array_values($funnelStages)) !!},
+                    data: @json(array_values($funnelStages)),
                     backgroundColor: 'rgba(56, 189, 248, 0.8)'
                 }]
             },

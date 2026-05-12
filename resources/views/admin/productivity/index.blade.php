@@ -26,7 +26,7 @@
                     <td>{{ $item->urutan }}</td>
                     <td><span class="badge {{ $item->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $item->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
                     <td class="d-flex gap-2">
-                        <a href="{{ route('admin.productivity.edit', $item->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{{ route('admin.productivity.edit', $item->id) }}" class="btn btn-sm btn-outline-secondary">Ubah</a>
                         <form action="{{ route('admin.productivity.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?')">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Hapus</button>

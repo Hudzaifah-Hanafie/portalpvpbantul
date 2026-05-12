@@ -18,10 +18,10 @@
 
 <div class="card shadow-sm border-0 mb-3">
     <div class="card-body">
-        @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
-        @if($errors->has('access')) <div class="alert alert-danger">{{ $errors->first('access') }}</div> @endif
+        @if(session('success')) <div class="alert alert-success alert-modern">{{ session('success') }}</div> @endif
+        @if($errors->has('access')) <div class="alert alert-danger alert-modern">{{ $errors->first('access') }}</div> @endif
         @if(isset($enrollment) && $enrollment->muted_until && $enrollment->muted_until->isFuture())
-            <div class="alert alert-warning">Anda dibatasi berpartisipasi di forum hingga {{ $enrollment->muted_until->format('d M Y H:i') }}.</div>
+            <div class="alert alert-warning alert-modern">Anda dibatasi berpartisipasi di forum hingga {{ $enrollment->muted_until->format('d M Y H:i') }}.</div>
         @endif
         <form action="{{ route('participant.class.forum.post', [$class, $topic]) }}" method="POST" class="row g-2">
             @csrf

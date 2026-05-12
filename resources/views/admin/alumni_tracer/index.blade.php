@@ -7,8 +7,8 @@
             <p class="text-muted mb-0">Monitor outcome alumni dan insight kebutuhan industri.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('admin.alumni-tracer.dashboard') }}" class="btn btn-outline-primary btn-sm">Dashboard Tracer</a>
-            <a href="{{ route('admin.alumni-tracer.export') }}" class="btn btn-outline-success btn-sm">Export CSV</a>
+            <a href="{{ route('admin.alumni-tracer.dashboard') }}" class="btn btn-outline-primary btn-sm">Dasbor Tracer</a>
+            <a href="{{ route('admin.alumni-tracer.export') }}" class="btn btn-outline-success btn-sm">Ekspor CSV</a>
             <a href="{{ route('alumni.tracer') }}" target="_blank" class="btn btn-outline-primary">Bagikan Form</a>
         </div>
     </div>
@@ -89,7 +89,7 @@
                     <th>Status</th>
                     <th>Konfirmasi Data</th>
                     <th>Perusahaan / Usaha</th>
-                    <th>Terakhir Update</th>
+                    <th>Terakhir Perbarui</th>
                     <th>Aksi</th>
                 </tr>
             </thead>

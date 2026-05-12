@@ -1,15 +1,15 @@
 @extends('layouts.participant')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 fade-up">
     <div>
-        <h4 class="mb-0">Progres Saya</h4>
-        <small class="text-muted">Ringkasan kehadiran, submission, dan nilai di kelas aktif.</small>
+        <h4 class="mb-1 section-title">Progres Saya</h4>
+        <div class="section-subtitle">Ringkasan kehadiran, submission, dan nilai di kelas aktif.</div>
     </div>
 </div>
 
 @forelse($classes as $row)
-    <div class="card shadow-sm border-0 mb-3">
+    <div class="card stat-card card-hover mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
@@ -23,6 +23,11 @@
                     @else
                         <div class="small text-muted">Belum ada presensi</div>
                     @endif
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar" style="width: {{ $row['attendance_rate'] ?? 0 }}%"></div>
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-3">

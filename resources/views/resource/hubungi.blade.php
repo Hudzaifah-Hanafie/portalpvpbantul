@@ -99,7 +99,7 @@
             <h2 class="fw-bold">{{ $setting->map_title ?? 'Temukan Kami' }}</h2>
             <p class="text-muted mb-4">{{ $setting->map_description ?? 'Temukan kami dengan menemukam alamat dan informasi kontak kami dengan mudah.' }}</p>
             <div class="contact-map-card">
-                {!! $setting->map_embed ?? '<div class="bg-light border rounded-4 p-5 text-center text-muted">Embed peta belum tersedia.</div>' !!}
+                {!! \App\Support\HtmlSanitizer::cleanEmbed($setting->map_embed ?? '<div class="bg-light border rounded-4 p-5 text-center text-muted">Embed peta belum tersedia.</div>') !!}
             </div>
         </div>
 

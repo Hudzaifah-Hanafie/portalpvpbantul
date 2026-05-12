@@ -141,8 +141,8 @@
                         <img src="https://placehold.co/520x200?text={{ urlencode($service->judul) }}" class="card-img-top" alt="{{ $service->judul }}" style="object-fit:cover; height:200px;">
                     @endif
                     @php
-                        $cleanDesc = strip_tags($service->deskripsi, '<p><br><strong><em><b><i><u>');
-                        $rawFasilitas = $service->fasilitas ?? '';
+                        $cleanDesc = \App\Support\HtmlSanitizer::clean($service->deskripsi ?? '');
+                        $rawFasilitas = \App\Support\HtmlSanitizer::clean($service->fasilitas ?? '');
                         $hasList = \Illuminate\Support\Str::contains($rawFasilitas, ['<ul', '<ol', '<li>']);
                         $fasilitasHtml = $rawFasilitas;
                         if (! $hasList) {
