@@ -119,7 +119,7 @@ class CertificationSchemeController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:2000',
             'cta_text' => 'nullable|string|max:150',
-            'cta_url' => 'nullable|url|max:255',
+            'cta_url' => 'nullable|string|max:255',
             'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',

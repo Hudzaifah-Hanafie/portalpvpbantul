@@ -25,7 +25,7 @@ class PublicationSettingController extends Controller
             'hero_title' => 'nullable|string|max:255',
             'hero_description' => 'nullable|string|max:1000',
             'hero_button_text' => 'nullable|string|max:100',
-            'hero_button_link' => 'nullable|url|max:255',
+            'hero_button_link' => 'nullable|string|max:255',
             'hero_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'intro_title' => 'nullable|string|max:255',
             'intro_description' => 'nullable|string|max:1000',

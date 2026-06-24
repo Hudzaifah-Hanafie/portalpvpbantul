@@ -39,6 +39,15 @@ class HtmlSanitizer
                 if (! empty($config['safe_iframe'])) {
                     $purifierConfig->set('HTML.SafeIframe', true);
                     $purifierConfig->set('URI.SafeIframeRegexp', $config['safe_iframe']);
+                    $purifierConfig->set('HTML.DefinitionRev', 1);
+
+                    $def = $purifierConfig->getHTMLDefinition(true);
+                    if ($def) {
+                        $def->addAttribute('iframe', 'allow', 'Text');
+                        $def->addAttribute('iframe', 'allowfullscreen', 'Bool');
+                        $def->addAttribute('iframe', 'loading', 'Enum#eager,lazy');
+                        $def->addAttribute('iframe', 'referrerpolicy', 'Text');
+                    }
                 }
 
                 self::$purifiers[$key] = new HTMLPurifier($purifierConfig);

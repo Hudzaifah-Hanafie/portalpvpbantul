@@ -113,6 +113,24 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Galeri::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_galeris'));
         \App\Models\Galeri::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_galeris'));
 
+        \App\Models\Partner::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_partners'));
+        \App\Models\Partner::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_partners'));
+
+        \App\Models\Instructor::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_instructors'));
+        \App\Models\Instructor::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_instructors'));
+
+        \App\Models\Benefit::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_benefits'));
+        \App\Models\Benefit::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_benefits'));
+
+        \App\Models\FlowStep::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_flowSteps'));
+        \App\Models\FlowStep::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_flowSteps'));
+
+        \App\Models\Testimonial::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_testimonials'));
+        \App\Models\Testimonial::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_testimonials'));
+
+        \App\Models\TrainingService::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_trainingServices'));
+        \App\Models\TrainingService::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_trainingServices'));
+
         SiteSetting::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home_settings'));
         SiteSetting::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home_settings'));
 

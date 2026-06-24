@@ -1006,25 +1006,7 @@
             toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
         }
 
-        // Flash toasts from backend sessions
-        const flashPayload = @json($flashMessages);
-        Object.entries(flashPayload).forEach(([key, val]) => {
-            if (!val) return;
-            const map = { success: 'Berhasil', error: 'Gagal', warning: 'Perhatian', info: 'Info' };
-            pushToast({ type: key, title: map[key] || 'Info', message: val });
-            addNotification({ type: key, title: map[key] || 'Info', message: val });
-        });
-
-        // Realtime-style hook: dispatch CustomEvent('notify', { detail: { type, title, message, delay } })
-        window.addEventListener('notify', (e) => {
-            const detail = e.detail || {};
-            if (detail.message) {
-                pushToast(detail);
-                addNotification(detail);
-            }
-        });
-
-        // Bell dropdown list
+        // Bell dropdown list elements and functions
         const notifList = document.getElementById('notifList');
         const notifBadge = document.getElementById('notifBadge');
         const notifCountLabel = document.getElementById('notifCountLabel');
@@ -1062,6 +1044,24 @@
             notifList.prepend(item);
             updateNotifCount();
         }
+
+        // Flash toasts from backend sessions
+        const flashPayload = @json($flashMessages);
+        Object.entries(flashPayload).forEach(([key, val]) => {
+            if (!val) return;
+            const map = { success: 'Berhasil', error: 'Gagal', warning: 'Perhatian', info: 'Info' };
+            pushToast({ type: key, title: map[key] || 'Info', message: val });
+            addNotification({ type: key, title: map[key] || 'Info', message: val });
+        });
+
+        // Realtime-style hook: dispatch CustomEvent('notify', { detail: { type, title, message, delay } })
+        window.addEventListener('notify', (e) => {
+            const detail = e.detail || {};
+            if (detail.message) {
+                pushToast(detail);
+                addNotification(detail);
+            }
+        });
 
         const bodyEl = document.body;
         const sidebarToggle = document.getElementById('sidebarToggle');

@@ -46,9 +46,14 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Controllers\Concerns\HasMathCaptcha;
 
 class HomeController extends Controller
 {
+    use HasMathCaptcha;
+
+    private const CONTACT_CAPTCHA_KEY = 'contact_form_captcha';
+
     public function index()
     {
         // 1. Mengambil 3 Berita Terbaru

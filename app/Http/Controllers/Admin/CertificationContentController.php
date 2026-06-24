@@ -123,7 +123,7 @@ class CertificationContentController extends Controller
             'description' => 'nullable|string|max:2000',
             'badge' => 'nullable|string|max:100',
             'button_text' => 'nullable|string|max:150',
-            'button_url' => 'nullable|url|max:255',
+            'button_url' => 'nullable|string|max:255',
             'background' => 'nullable|string|max:255',
             'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
